@@ -1,4 +1,4 @@
-import { LandingPageNavbar } from '@/components';
+import { LandingPageNavbar, Footer } from '@/components';
 import { Box } from '@mui/material';
 
 export default function LandingLayout({
@@ -11,6 +11,7 @@ export default function LandingLayout({
             <Box component="main" sx={{ flexGrow: 1 }}>
                 <LandingPageNavbar />
                 {children}
+                <Footer />
             </Box>
         </Box>
     );
