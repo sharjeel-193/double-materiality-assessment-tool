@@ -1,5 +1,5 @@
+import { HeroSection } from '@/sections';
 import {
-    Container,
     Box,
     Typography
 } from '@mui/material';
@@ -7,17 +7,11 @@ import {
 
 export default function LandingPage() {
     return (
-        <Container maxWidth="lg">
-            <Box
-                sx={{
-                    py: { xs: 8, md: 12 },
-                    textAlign: 'center',
-                }}
-            >
+        <Box>
+            <HeroSection />
                 <Typography>
                     THIS IS THE LANDING PAGE
                 </Typography>
-            </Box>
-        </Container>
+        </Box>
     );
 }
