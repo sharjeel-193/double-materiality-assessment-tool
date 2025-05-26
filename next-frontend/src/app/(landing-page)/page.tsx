@@ -1,4 +1,4 @@
-import { HeroSection } from '@/sections';
+import { AboutSection, HeroSection } from '@/sections';
 import {
     Box,
     Typography
@@ -9,6 +9,7 @@ export default function LandingPage() {
     return (
         <Box>
             <HeroSection />
+            <AboutSection />
                 <Typography>
                     THIS IS THE LANDING PAGE
                 </Typography>
