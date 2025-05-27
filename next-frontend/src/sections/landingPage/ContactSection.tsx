@@ -9,7 +9,6 @@ import {
     Card,
     TextField,
     Button,
-    useTheme,
     Alert,
     Snackbar,
 } from '@mui/material';
@@ -17,46 +16,9 @@ import {
     MdSend as SendIcon,
 } from 'react-icons/md';
 import { motion } from 'framer-motion';
-
-
-// Animation variants
-const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.1,
-            delayChildren: 0.2,
-        },
-    },
-};
-
-const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-        opacity: 1,
-        y: 0,
-        transition: {
-            duration: 0.6,
-            ease: "easeOut",
-        },
-    },
-};
-
-const cardVariants = {
-    hidden: { opacity: 0, scale: 0.9 },
-    visible: {
-        opacity: 1,
-        scale: 1,
-        transition: {
-            duration: 0.5,
-            ease: "easeOut",
-        },
-    },
-};
+import { containerVariants, itemVariants, cardVariants } from '@/lib/animations';
 
 export function ContactSection() {
-    const theme = useTheme();
     
     // Form state
     const [formData, setFormData] = useState({
@@ -123,15 +85,8 @@ export function ContactSection() {
                             <Typography
                                 variant="h2"
                                 component="h2"
-                                sx={{
-                                    fontSize: { xs: '2.5rem', md: '3.5rem' },
-                                    fontWeight: 700,
-                                    mb: 3,
-                                    background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                                    backgroundClip: 'text',
-                                    WebkitBackgroundClip: 'text',
-                                    WebkitTextFillColor: 'transparent',
-                                }}
+                                mb={3}
+                                className='gradient-color-heading'
                             >
                                 Get In Touch
                             </Typography>
@@ -140,13 +95,11 @@ export function ContactSection() {
                         <motion.div variants={itemVariants}>
                             <Typography
                                 variant="h6"
-                                sx={{
-                                    fontSize: { xs: '1.1rem', md: '1.25rem' },
-                                    color: 'text.secondary',
-                                    maxWidth: '600px',
-                                    mx: 'auto',
-                                    lineHeight: 1.6,
-                                }}
+                                color='text.secondary'
+                                mx={'auto'}
+                                maxWidth={900}
+                                lineHeight={1.6}
+                                mb={2}
                             >
                                 Ready to transform your sustainability reporting? 
                                 Contact us to learn how MatriQ can streamline your double materiality assessment process.
@@ -168,11 +121,7 @@ export function ContactSection() {
                                 >
                                     <Typography
                                         variant="h4"
-                                        sx={{
-                                            fontWeight: 600,
-                                            mb: 3,
-                                            color: 'text.primary',
-                                        }}
+                                        mb={3}
                                     >
                                         Send us a Message
                                     </Typography>
@@ -252,14 +201,6 @@ export function ContactSection() {
                                                     size="large"
                                                     disabled={!isFormValid || isSubmitting}
                                                     endIcon={<SendIcon />}
-                                                    sx={{
-                                                        px: 4,
-                                                        py: 1.5,
-                                                        borderRadius: 2,
-                                                        fontWeight: 600,
-                                                        textTransform: 'none',
-                                                        fontSize: '1.1rem',
-                                                    }}
                                                 >
                                                     {isSubmitting ? 'Sending...' : 'Send Message'}
                                                 </Button>

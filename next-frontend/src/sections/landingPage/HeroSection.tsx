@@ -16,72 +16,16 @@ import {
     MdKeyboardArrowRight as ArrowRightIcon,
 } from 'react-icons/md';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useThemeContext } from '@/providers';
+
 import { heroSlideItems as slides } from '@/data';
-
-// Animation variants
-const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.2,
-            delayChildren: 0.1,
-        },
-    },
-};
-
-const itemVariants = {
-    hidden: { opacity: 0, y: 40 },
-    visible: {
-        opacity: 1,
-        y: 0,
-        transition: {
-            duration: 0.6,
-            ease: "easeOut",
-        },
-    },
-};
-
-const slideInLeftVariants = {
-    hidden: { opacity: 0, x: -50 },
-    visible: {
-        opacity: 1,
-        x: 0,
-        transition: {
-            duration: 0.8,
-            ease: "easeOut",
-        },
-    },
-};
-
-const floatVariants = {
-    animate: {
-        y: [-10, 10, -10],
-        transition: {
-            duration: 4,
-            repeat: Infinity,
-            ease: "easeInOut",
-        },
-    },
-};
-
-const pulseVariants = {
-    animate: {
-        scale: [1, 1.05, 1],
-        transition: {
-            duration: 3,
-            repeat: Infinity,
-            ease: "easeInOut",
-        },
-    },
-};
+import { itemVariants, containerVariants, pulseVariants, slideInLeftVariants, floatVariants } from '@/lib/animations';
+import { useThemeContext } from '@/providers';
 
 export function HeroSection() {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
+    const { mode } = useThemeContext()
     const theme = useTheme();
-    const { mode } = useThemeContext();
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -133,7 +77,7 @@ export function HeroSection() {
                 position: 'relative',
                 overflow: 'hidden',
                 background: `linear-gradient(135deg, ${mode === 'dark' ? theme.palette.secondary.dark : theme.palette.secondary.light} 0%, ${mode === 'dark' ? theme.palette.primary.dark : theme.palette.primary.light} 100%)`,
-                color: 'white',
+                color: mode === 'dark'? theme.palette.text.primary: theme.palette.text.secondary, // Fixed: Consistent white text for hero
                 '&::before': {
                     content: '""',
                     position: 'absolute',
@@ -146,8 +90,22 @@ export function HeroSection() {
                 },
             }}
         >
+            {/* Background Pattern */}
+            <motion.div
+                style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    opacity: 0.1,
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                }}
+                variants={floatVariants}
+                animate="animate"
+            />
 
-            <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 2, paddingY: 4 }}>
+            <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 2, py: { xs: 4, md: 6 } }}>
                 <Box
                     sx={{
                         display: 'grid',
@@ -183,13 +141,7 @@ export function HeroSection() {
                                         }}
                                     >
                                         <Typography
-                                            variant="body2"
-                                            sx={{
-                                                fontWeight: 600,
-                                                fontSize: '0.875rem',
-                                                textTransform: 'uppercase',
-                                                letterSpacing: 1,
-                                            }}
+                                            variant="overline"
                                         >
                                             ✨ {currentSlideData.highlight}
                                         </Typography>
@@ -201,16 +153,7 @@ export function HeroSection() {
                                     <Typography
                                         variant="h1"
                                         component="h1"
-                                        sx={{
-                                            fontSize: { xs: '2.5rem', md: '3.5rem', lg: '4rem' },
-                                            fontWeight: 700,
-                                            lineHeight: 1.1,
-                                            mb: 3,
-                                            background: 'linear-gradient(45deg, #ffffff, #f0f0f0)',
-                                            backgroundClip: 'text',
-                                            WebkitBackgroundClip: 'text',
-                                            WebkitTextFillColor: 'transparent',
-                                        }}
+                                        mb={2}
                                     >
                                         {currentSlideData.title}
                                     </Typography>
@@ -219,14 +162,8 @@ export function HeroSection() {
                                 {/* Subtitle */}
                                 <motion.div variants={itemVariants}>
                                     <Typography
-                                        variant="h6"
-                                        sx={{
-                                            fontSize: { xs: '1.1rem', md: '1.25rem' },
-                                            fontWeight: 400,
-                                            lineHeight: 1.6,
-                                            mb: 4,
-                                            opacity: 0.9,
-                                        }}
+                                        variant="subtitle1" // Fixed: Better semantic variant
+                                        mb={4}
                                     >
                                         {currentSlideData.subtitle}
                                     </Typography>
@@ -259,6 +196,7 @@ export function HeroSection() {
                                                         borderRadius: 2,
                                                         fontSize: '0.875rem',
                                                         fontWeight: 500,
+                                                        color: 'inherit',
                                                     }}
                                                 >
                                                     ✓ {feature}
@@ -287,13 +225,8 @@ export function HeroSection() {
                                             sx={{
                                                 bgcolor: 'white',
                                                 color: theme.palette.primary.main,
-                                                px: 4,
-                                                py: 1.5,
                                                 borderRadius: 3,
-                                                fontWeight: 600,
-                                                fontSize: '1.1rem',
-                                                textTransform: 'none',
-                                                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                                               
                                             }}
                                         >
                                             {currentSlideData.primaryAction}
@@ -308,15 +241,8 @@ export function HeroSection() {
                                             startIcon={<PlayIcon />}
                                             onClick={handleSecondaryAction}
                                             sx={{
-                                                borderColor: 'rgba(255, 255, 255, 0.5)',
                                                 color: 'white',
-                                                px: 4,
-                                                py: 1.5,
                                                 borderRadius: 3,
-                                                fontWeight: 600,
-                                                fontSize: '1.1rem',
-                                                textTransform: 'none',
-                                                backdropFilter: 'blur(10px)',
                                             }}
                                         >
                                             {currentSlideData.secondaryAction}
@@ -372,12 +298,8 @@ export function HeroSection() {
                                 />
                                 <Typography
                                     variant="h2"
-                                    sx={{
-                                        fontSize: { xs: '3rem', md: '4rem' },
-                                        fontWeight: 700,
-                                        textAlign: 'center',
-                                        zIndex: 1,
-                                    }}
+                                    textAlign={'center'}
+                                    zIndex={1}
                                 >
                                     {currentSlideData.id}
                                 </Typography>
@@ -414,6 +336,9 @@ export function HeroSection() {
                             border: '1px solid rgba(255, 255, 255, 0.2)',
                             width: { xs: 36, md: 44 },
                             height: { xs: 36, md: 44 },
+                            '&:hover': {
+                                bgcolor: 'rgba(255, 255, 255, 0.2)',
+                            },
                             '&:disabled': {
                                 opacity: 0.5,
                             },
@@ -422,6 +347,7 @@ export function HeroSection() {
                         <Box
                             sx={{
                                 transform: 'rotate(-90deg)',
+                                transition: 'transform 0.3s ease',
                             }}
                         >
                             <ArrowLeftIcon />
@@ -453,6 +379,9 @@ export function HeroSection() {
                                         cursor: 'pointer',
                                         transition: 'all 0.3s ease',
                                         position: 'relative',
+                                        '&:hover': {
+                                            bgcolor: currentSlide === index ? 'white' : 'rgba(255, 255, 255, 0.6)',
+                                        },
                                         '&::after': {
                                             content: currentSlide === index ? `"${index + 1}"` : '""',
                                             position: 'absolute',
@@ -484,6 +413,9 @@ export function HeroSection() {
                             border: '1px solid rgba(255, 255, 255, 0.2)',
                             width: { xs: 36, md: 44 },
                             height: { xs: 36, md: 44 },
+                            '&:hover': {
+                                bgcolor: 'rgba(255, 255, 255, 0.2)',
+                            },
                             '&:disabled': {
                                 opacity: 0.5,
                             },
@@ -492,6 +424,7 @@ export function HeroSection() {
                         <Box
                             sx={{
                                 transform: 'rotate(90deg)',
+                                transition: 'transform 0.3s ease',
                             }}
                         >
                             <ArrowRightIcon />
@@ -499,44 +432,6 @@ export function HeroSection() {
                     </IconButton>
                 </Box>
             </Container>
-
-            {/* Scroll Indicator */}
-            <motion.div
-                style={{
-                    position: 'absolute',
-                    bottom: 20,
-                    left: 40,
-                    display: 'block',
-                    zIndex: 3,
-                }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 2 }}
-            >
-                <motion.div
-                    style={{
-                        width: 2,
-                        height: 40,
-                        background: 'rgba(255, 255, 255, 0.4)',
-                        position: 'relative',
-                    }}
-                    animate={{ scaleY: [1, 0.5, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                />
-                <Typography
-                    variant="caption"
-                    sx={{
-                        display: 'block',
-                        mt: 1,
-                        transform: 'rotate(90deg)',
-                        transformOrigin: 'center',
-                        whiteSpace: 'nowrap',
-                        opacity: 0.7,
-                    }}
-                >
-                    Scroll Down
-                </Typography>
-            </motion.div>
         </Box>
     );
 }

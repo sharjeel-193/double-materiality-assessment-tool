@@ -10,46 +10,11 @@ import {
     CardContent,
     useTheme,
 } from '@mui/material';
+import Image from 'next/image';
 
 import { motion } from 'framer-motion';
 import { frameworkPhases as phases } from '@/data';
-
-
-// Animation variants
-const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.1,
-            delayChildren: 0.2,
-        },
-    },
-};
-
-const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-        opacity: 1,
-        y: 0,
-        transition: {
-            duration: 0.6,
-            ease: "easeOut",
-        },
-    },
-};
-
-const phaseCardVariants = {
-    hidden: { opacity: 0, scale: 0.9 },
-    visible: {
-        opacity: 1,
-        scale: 1,
-        transition: {
-            duration: 0.5,
-            ease: "easeOut",
-        },
-    },
-};
+import { containerVariants, itemVariants, cardVariants as phaseCardVariants } from '@/lib/animations';
 
 export function AboutSection() {
     const theme = useTheme();
@@ -76,17 +41,10 @@ export function AboutSection() {
                     <Box sx={{ textAlign: 'center', mb: 8 }}>
                         <motion.div variants={itemVariants}>
                             <Typography
+                                className='gradient-color-heading'
                                 variant="h2"
                                 component="h2"
-                                sx={{
-                                    fontSize: { xs: '2.5rem', md: '3.5rem' },
-                                    fontWeight: 700,
-                                    mb: 3,
-                                    background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                                    backgroundClip: 'text',
-                                    WebkitBackgroundClip: 'text',
-                                    WebkitTextFillColor: 'transparent',
-                                }}
+                                sx={{ mb: 3 }} // Fixed: Use sx instead of direct prop
                             >
                                 About MatriQ
                             </Typography>
@@ -94,14 +52,14 @@ export function AboutSection() {
 
                         <motion.div variants={itemVariants}>
                             <Typography
-                                variant="h6"
+                                variant="subtitle1"
                                 sx={{
-                                    fontSize: { xs: '1.1rem', md: '1.25rem' },
-                                    lineHeight: 1.8,
                                     color: 'text.secondary',
-                                    maxWidth: '900px',
                                     mx: 'auto',
+                                    maxWidth: 900,
+                                    lineHeight: 1.6,
                                     mb: 2,
+                                    fontSize: { xs: '1.1rem', md: '1.25rem' }, // Added responsive sizing
                                 }}
                             >
                                 MatriQ is a comprehensive double materiality assessment tool designed specifically for software-based companies. 
@@ -119,135 +77,148 @@ export function AboutSection() {
                                 variant="h3"
                                 component="h3"
                                 sx={{
-                                    fontSize: { xs: '1.75rem', md: '2.25rem' },
-                                    fontWeight: 600,
                                     textAlign: 'center',
                                     mb: 6,
-                                    color: 'text.primary',
+                                    fontSize: { xs: '1.75rem', md: '2.25rem' }, // Added responsive sizing
+                                    fontWeight: 600,
                                 }}
                             >
-                                Our 4-Phase Assessment Method
+                                Our {phases.length}-Phase Assessment Method
                             </Typography>
                         </motion.div>
 
-                        <Box>
-                            <Grid 
-                                container 
-                                spacing={3} 
-                                sx={{
-                                    display: 'flex', 
-                                    alignItems: 'stretch', 
-                                    justifyContent: 'center'
-                                }}
-                            >
-                                {phases.map((phase) => {
-                                    const cardColor = phase.id%2 === 0 ? theme.palette.primary.main : theme.palette.secondary.main
-                                    return(
-                                        <Grid 
-                                            size={{ xs: 12, sm: 6, lg: 3 }} 
-                                            key={phase.id}
-                                            sx={{ display: 'flex' }} // KEY FIX: Add display flex to Grid item
+                        <Grid 
+                            container 
+                            spacing={3} 
+                            sx={{
+                                display: 'flex', 
+                                alignItems: 'stretch', 
+                                justifyContent: 'center'
+                            }}
+                        >
+                            {phases.map((phase) => {
+                                const cardColor = phase.id % 2 === 0 ? theme.palette.primary.main : theme.palette.secondary.main;
+                                return (
+                                    <Grid 
+                                        size={{ xs: 12, sm: 6, lg: 3 }} 
+                                        key={phase.id}
+                                        sx={{ display: 'flex' }}
+                                    >
+                                        <motion.div
+                                            variants={phaseCardVariants}
+                                            initial="hidden"
+                                            whileInView="visible"
+                                            viewport={{ once: true }}
+                                            transition={{ delay: (phase.id - 1) * 0.1 }}
+                                            whileHover={{ scale: 1.02 }}
+                                            style={{ 
+                                                height: '100%', 
+                                                width: '100%', 
+                                                display: 'flex' 
+                                            }} 
                                         >
-                                            <motion.div
-                                                variants={phaseCardVariants}
-                                                initial="hidden"
-                                                whileInView="visible"
-                                                viewport={{ once: true }}
-                                                transition={{ delay: phase.delay }}
-                                                whileHover={{ scale: 1.02 }}
-                                                style={{ 
-                                                    height: '100%', 
+                                            <Card
+                                                sx={{
+                                                    height: '100%',
                                                     width: '100%', 
-                                                    display: 'flex' 
-                                                }} 
+                                                    display: 'flex', 
+                                                    flexDirection: 'column', 
+                                                    border: '2px solid',
+                                                    borderColor: 'divider',
+                                                    borderRadius: 2, // Added consistent border radius
+                                                    transition: 'all 0.3s ease',
+                                                    '&:hover': {
+                                                        borderColor: cardColor,
+                                                        boxShadow: `0 8px 32px ${cardColor}20`,
+                                                    },
+                                                }}
                                             >
-                                                <Card
-                                                    sx={{
-                                                        height: '100%',
-                                                        width: '100%', 
+                                                <CardContent 
+                                                    sx={{ 
+                                                        p: { xs: 2.5, md: 3 }, // Fixed: Responsive padding
                                                         display: 'flex', 
                                                         flexDirection: 'column', 
-                                                        border: '2px solid',
-                                                        borderColor: 'divider',
-                                                        transition: 'all 0.3s ease',
-                                                        '&:hover': {
-                                                            borderColor: cardColor,
-                                                            boxShadow: `0 8px 32px ${cardColor}20`,
-                                                        },
+                                                        height: '100%',
+                                                        '&:last-child': { pb: { xs: 2.5, md: 3 } }, // Fixed: Override MUI default
                                                     }}
                                                 >
-                                                    <CardContent 
-                                                        sx={{ 
-                                                            p: 3,
-                                                            display: 'flex', 
-                                                            flexDirection: 'column', 
-                                                            height: '100%', 
-                                                        }}
-                                                    >
-                                                        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, flexGrow: 1 }}>
-                                                            {/* Phase Number & Icon */}
-                                                            <Box sx={{ textAlign: 'center', flexShrink: 0 }}>
-                                                                <Box
-                                                                    sx={{
-                                                                        width: 50,
-                                                                        height: 50,
-                                                                        borderRadius: '50%',
-                                                                        bgcolor: cardColor,
-                                                                        color: 'white',
-                                                                        display: 'flex',
-                                                                        alignItems: 'center',
-                                                                        justifyContent: 'center',
-                                                                        mb: 1,
-                                                                        fontSize: '1.25rem',
-                                                                        fontWeight: 700,
-                                                                    }}
-                                                                >
-                                                                    {phase.id}
-                                                                </Box>
-                                                                <Box sx={{ color: cardColor }}>
-                                                                    <phase.icon size={phase.iconSize || 32} />
-                                                                </Box>
-                                                            </Box>
-
-                                                            {/* Content */}
-                                                            <Box 
-                                                                sx={{ 
-                                                                    flex: 1,
-                                                                    display: 'flex', // KEY FIX: Add display flex
-                                                                    flexDirection: 'column', // KEY FIX: Add flex direction
+                                                    <Box sx={{ 
+                                                        display: 'flex', 
+                                                        alignItems: 'flex-start', 
+                                                        gap: 2, 
+                                                        flexGrow: 1 
+                                                    }}>
+                                                        {/* Phase Number & Icon */}
+                                                        <Box sx={{ 
+                                                            textAlign: 'center', 
+                                                            flexShrink: 0,
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            alignItems: 'center',
+                                                            gap: 1, // Fixed: Consistent gap
+                                                        }}>
+                                                            <Box
+                                                                sx={{
+                                                                    width: { xs: 45, md: 50 }, // Fixed: Responsive sizing
+                                                                    height: { xs: 45, md: 50 },
+                                                                    borderRadius: '50%',
+                                                                    bgcolor: cardColor,
+                                                                    color: 'white',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center',
+                                                                    fontSize: { xs: '1.1rem', md: '1.25rem' }, // Fixed: Responsive font
+                                                                    fontWeight: 700,
                                                                 }}
                                                             >
-                                                                <Typography
-                                                                    variant="h6"
-                                                                    sx={{
-                                                                        fontWeight: 600,
-                                                                        mb: 1,
-                                                                        fontSize: '1rem',
-                                                                        color: 'text.primary',
-                                                                    }}
-                                                                >
-                                                                    {phase.title}
-                                                                </Typography>
-                                                                <Typography
-                                                                    variant="body2"
-                                                                    sx={{
-                                                                        color: 'text.secondary',
-                                                                        lineHeight: 1.5,
-                                                                        flexGrow: 1, // KEY FIX: This makes description fill remaining space
-                                                                    }}
-                                                                >
-                                                                    {phase.description}
-                                                                </Typography>
+                                                                {phase.id}
+                                                            </Box>
+                                                            <Box sx={{ 
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                            }}>
+                                                                <Image
+                                                                    src={phase.icon}
+                                                                    alt={phase.title}
+                                                                    width={32}
+                                                                    height={32}
+                                                                    style={{ objectFit: 'contain' }}
+                                                                />
                                                             </Box>
                                                         </Box>
-                                                    </CardContent>
-                                                </Card>
-                                            </motion.div>
-                                        </Grid>
-                                    )
-                                })}
-                            </Grid>
-                        </Box>
+
+                                                        {/* Content */}
+                                                        <Box 
+                                                            sx={{ 
+                                                                flex: 1,
+                                                                display: 'flex', 
+                                                                flexDirection: 'column',
+                                                                minHeight: 0, // Fixed: Prevent flex overflow
+                                                            }}
+                                                        >
+                                                            <Typography 
+                                                                variant="h6" 
+                                                                component="h4" 
+                                                                mb={1}
+                                                            >
+                                                                {phase.title}
+                                                            </Typography>
+                                                            <Typography
+                                                                variant="body2"
+                                                                color='text.secondary'
+                                                            >
+                                                                {phase.description}
+                                                            </Typography>
+                                                        </Box>
+                                                    </Box>
+                                                </CardContent>
+                                            </Card>
+                                        </motion.div>
+                                    </Grid>
+                                );
+                            })}
+                        </Grid>
                     </Box>
                 </motion.div>
             </Container>
