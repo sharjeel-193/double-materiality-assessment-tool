@@ -1,11 +1,14 @@
 import { createTheme } from '@mui/material/styles';
 import { lightPalette, darkPalette } from './palettes';
+import { typography } from './typography';
 
 export const createAppTheme = (mode: 'light' | 'dark') => {
     const palette = mode === 'light' ? lightPalette : darkPalette;
     
     return createTheme({
-        palette,
+        cssVariables: true,
+        palette: palette,
+        typography: typography,
         spacing: 8,
         shape: {
             borderRadius: 8,
