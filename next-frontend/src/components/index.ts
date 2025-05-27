@@ -1,3 +1,5 @@
 export { ThemeSwitcher } from './ui/ThemeSwitcher'
 export { LandingPageNavbar } from './navigation/LandingPageNavbar'
 export { Footer } from './navigation/Footer'
+export { DashboardSidebar } from './navigation/DashboardSidebar'
+export { DashboardNavbar } from './navigation/DashboardNavbar'
