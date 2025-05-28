@@ -1,0 +1,159 @@
+'use client';
+
+import React from 'react';
+import {
+    Box,
+    Typography,
+    IconButton,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+} from '@mui/material';
+import { MdEdit as EditIcon, MdDelete as DeleteIcon } from 'react-icons/md';
+import { Stakeholder } from '@/lib/types';
+
+export interface StakeholderListProps {
+    stakeholders: Stakeholder[];
+    onEdit: (stakeholder: Stakeholder) => void;
+    onDelete: (id: number) => void;
+}
+
+export function StakeholderList({ stakeholders, onEdit, onDelete }: StakeholderListProps) {
+    if (stakeholders.length === 0) {
+        return (
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    py: 8,
+                    textAlign: 'center',
+                }}
+            >
+                <Typography variant="h6" sx={{ mb: 1, opacity: 0.6 }}>
+                    👥
+                </Typography>
+                <Typography variant="h6" sx={{ mb: 1 }}>
+                    No Stakeholders Added
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                    Click Add Stakeholder to start building your stakeholder list
+                </Typography>
+            </Box>
+        );
+    }
+
+    return (
+        <TableContainer 
+            component={Paper} 
+            sx={{ 
+                borderRadius: 2,
+                boxShadow: 'none',
+                border: '1px solid',
+                borderColor: 'divider',
+            }}
+        >
+            <Table sx={{ minWidth: 650 }}>
+                <TableHead>
+                    <TableRow sx={{ bgcolor: 'action.hover' }}>
+                        <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                            Name
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                            Contact
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                            Description
+                        </TableCell>
+                        <TableCell 
+                            align="center" 
+                            sx={{ fontWeight: 600, fontSize: '0.875rem', width: 120 }}
+                        >
+                            Actions
+                        </TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {stakeholders.map((stakeholder) => (
+                        <TableRow
+                            key={stakeholder.id}
+                            sx={{
+                                '&:hover': {
+                                    bgcolor: 'action.hover',
+                                },
+                                '&:last-child td, &:last-child th': {
+                                    border: 0,
+                                },
+                            }}
+                        >
+                            <TableCell>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                    {stakeholder.name}
+                                </Typography>
+                            </TableCell>
+                            
+                            <TableCell>
+                                <Typography variant="body2" color="text.secondary">
+                                    {stakeholder.contact}
+                                </Typography>
+                            </TableCell>
+                            
+                            <TableCell sx={{ maxWidth: 300 }}>
+                                <Typography 
+                                    variant="body2" 
+                                    sx={{ 
+                                        lineHeight: 1.4,
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        display: '-webkit-box',
+                                        WebkitLineClamp: 2,
+                                        WebkitBoxOrient: 'vertical',
+                                    }}
+                                >
+                                    {stakeholder.description}
+                                </Typography>
+                            </TableCell>
+                            
+                            
+                            <TableCell align="center">
+                                <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => onEdit(stakeholder)}
+                                        sx={{
+                                            bgcolor: 'action.hover',
+                                            '&:hover': { 
+                                                bgcolor: 'primary.light', 
+                                                color: 'text.primary' 
+                                            },
+                                        }}
+                                    >
+                                        <EditIcon size={16} />
+                                    </IconButton>
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => onDelete(stakeholder.id)}
+                                        sx={{
+                                            bgcolor: 'action.hover',
+                                            '&:hover': { 
+                                                bgcolor: 'error.light', 
+                                                color: 'text.primary' 
+                                            },
+                                        }}
+                                    >
+                                        <DeleteIcon size={16} />
+                                    </IconButton>
+                                </Box>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </TableContainer>
+    );
+}
