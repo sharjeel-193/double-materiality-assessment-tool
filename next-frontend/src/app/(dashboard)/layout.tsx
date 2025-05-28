@@ -22,7 +22,7 @@ export default function DashboardLayout({
             />
             <DashboardNavbar onMobileMenuToggle={handleMobileMenuToggle} />
             <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', ml: { lg: '280px' } }}>
-                <Box component="main" sx={{ flexGrow: 1 }}>
+                <Box component="main" sx={{ flexGrow: 1, m: 2 }}>
                     {children}
                 </Box>
             </Box>

@@ -1,3 +1,5 @@
 export { HeroSection } from './landingPage/HeroSection'
 export { AboutSection } from './landingPage/AboutSection'
 export { ContactSection } from './landingPage/ContactSection'
+export { CompanyCharacteristics } from './dashboard/CompanyCharacteristics'
+export { SupplyChain } from './dashboard/SupplyChain'
