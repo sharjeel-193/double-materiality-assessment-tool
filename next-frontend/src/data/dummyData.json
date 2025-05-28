@@ -45,5 +45,37 @@
       "name": "Customer Support Services",
       "description": "Third-party support and maintenance services for end-user assistance"
     }
+  ],
+  "stakeholders":[
+    {
+      "id": 1,
+      "name": "Environmental Protection Agency",
+      "contact": "epa.contact@gov.org",
+      "description": "Government regulatory body overseeing environmental compliance and sustainability standards for software companies"
+    },
+    {
+      "id": 2,
+      "name": "Cloud Infrastructure Providers",
+      "contact": "partnerships@cloudservices.com",
+      "description": "Major cloud service providers (AWS, Azure, Google Cloud) supplying hosting and data storage infrastructure"
+    },
+    {
+      "id": 3,
+      "name": "Software License Vendors",
+      "contact": "licensing@softwarevendors.org",
+      "description": "Third-party software vendors providing development tools, operating systems, and enterprise software licenses"
+    },
+    {
+      "id": 4,
+      "name": "Local Community Representatives",
+      "contact": "community.board@localarea.org",
+      "description": "Representatives from local communities where the company operates, concerned with local employment and environmental impact"
+    },
+    {
+      "id": 5,
+      "name": "Data Privacy Regulators",
+      "contact": "privacy@dataprotection.gov",
+      "description": "Data protection authorities ensuring compliance with GDPR, CCPA, and other privacy regulations"
+    }
   ]
 }
