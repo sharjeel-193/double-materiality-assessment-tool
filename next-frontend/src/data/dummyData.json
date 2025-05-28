@@ -1,0 +1,49 @@
+{
+  "companyCharacteristics": {
+    "companyName": "TechFlow Solutions GmbH",
+    "date": "2024-03-15",
+    "businessLocation": "Continental",
+    "businessType": "Service",
+    "legalForm": "Corporation",
+    "companySizeEmployees": "< 250",
+    "companySizeRevenue": "≤ 50 Mio. €",
+    "productSpectrum": "Standardized with customization",
+    "customerSpectrum": "Global",
+    "supplyChainScope": "Continental",
+    "materialSpectrum": "Comprehensive",
+    "specialFeatures": "Some",
+    "extraDetails": "HERE Are the details"
+  },
+  "activities": [
+    {
+      "id": 1,
+      "type": "Upstream",
+      "name": "Cloud Infrastructure Providers",
+      "description": "AWS, Azure, and Google Cloud services for hosting and data storage solutions"
+    },
+    {
+      "id": 2,
+      "type": "Upstream",
+      "name": "Software License Vendors",
+      "description": "Third-party software licenses and development tools from Microsoft, Oracle, and Adobe"
+    },
+    {
+      "id": 3,
+      "type": "Upstream",
+      "name": "Hardware Equipment Suppliers",
+      "description": "Servers, networking equipment, and workstations from Dell, HP, and Cisco"
+    },
+    {
+      "id": 4,
+      "type": "Downstream",
+      "name": "System Integration Partners",
+      "description": "Partners who implement our software solutions for enterprise clients"
+    },
+    {
+      "id": 5,
+      "type": "Downstream",
+      "name": "Customer Support Services",
+      "description": "Third-party support and maintenance services for end-user assistance"
+    }
+  ]
+}
