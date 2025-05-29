@@ -18,3 +18,4 @@ export { FileUploadersSummary } from './ui/FileUploadersSummary'
 export { UploaderSubmissions } from './ui/UploaderSubmissions'
 
 export {RatingsTableView} from './dashboard/RatingsTableView'
+export { MatrixMap } from './dashboard/MatrixMap'

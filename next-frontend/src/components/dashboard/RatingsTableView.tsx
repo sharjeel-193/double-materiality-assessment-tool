@@ -25,9 +25,9 @@ import { MdClear as ClearIcon } from 'react-icons/md';
 type TableData = Record<string, string | number>;
 
 interface RatingsTableViewProps {
-    data: Record<string, TableData[]>; // uploader name -> array of rows
-    uploaderLabel?: string;            // e.g. "Uploader", "Analyst", "Supplier"
-    showAverage?: boolean;             // Show "Average" as a filter option if present
+    data: Record<string, TableData[]>;
+    uploaderLabel?: string;
+    showAverage?: boolean;
     title?: string;
 }
 
@@ -39,61 +39,56 @@ export function RatingsTableView({
     showAverage = true,
     title = 'Data Table',
 }: RatingsTableViewProps) {
-    // Get all uploader names (filter out "Average" unless showAverage)
-    const allUploaders = useMemo(() =>
-        Object.keys(data).filter(
-            name => showAverage || name !== 'Average'
-        ), [data, showAverage]
+    const allUploaders = useMemo(
+        () => Object.keys(data).filter(name => showAverage || name !== 'Average'),
+        [data, showAverage]
     );
-    const hasAverage = !!data['Average'];
 
-    // Get all possible columns (from the first row of the first uploader)
-    const allColumns: string[] = useMemo(() => {
-        const firstUploader = allUploaders.find(name => name !== 'Average');
-        const firstRow = firstUploader && data[firstUploader]?.[0];
-        if (firstRow) {
-            return Object.keys(firstRow).filter(k => k !== 'uploader');
-        }
-        // fallback: try "Average"
-        if (hasAverage && data['Average'][0]) {
-            return Object.keys(data['Average'][0]).filter(k => k !== 'uploader');
-        }
-        return [];
-    }, [data, allUploaders, hasAverage]);
-
-    // UI states
-    const [filterUploader, setFilterUploader] = useState<string>(hasAverage ? 'Average' : allUploaders[0] || '');
-    const [sortField, setSortField] = useState<string>(allColumns[0] || '');
+    // Always default to "Average"
+    const [filterUploader, setFilterUploader] = useState<string>('Average');
+    const [sortField, setSortField] = useState<string>('');
     const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
     const [search, setSearch] = useState<string>('');
+
+    // Get all columns from the first available data row
+    const allColumns: string[] = useMemo(() => {
+        const firstRow =
+            (data['Average'] && data['Average'][0]) ||
+            (allUploaders.length > 0 && data[allUploaders[0]] && data[allUploaders[0]][0]);
+        return firstRow ? Object.keys(firstRow).filter(k => k !== 'uploader') : [];
+    }, [data, allUploaders]);
+
+    // Set default sort field if not set and columns exist
+    React.useEffect(() => {
+        if (!sortField && allColumns.length > 0) {
+            setSortField(allColumns[0]);
+        }
+    }, [allColumns, sortField]);
 
     // Data to display (filtered, searched, sorted)
     const filteredRows = useMemo(() => {
         let rows = (data[filterUploader] || []) as TableData[];
-        // Generic search across all fields
         if (search.trim()) {
             const lower = search.trim().toLowerCase();
             rows = rows.filter(row =>
                 allColumns.some(col => String(row[col]).toLowerCase().includes(lower))
             );
         }
-        // Sort
         if (sortField) {
             rows = [...rows].sort((a, b) => {
                 const aVal = a[sortField];
                 const bVal = b[sortField];
                 if (typeof aVal === 'number' && typeof bVal === 'number') {
-                return sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+                    return sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
                 }
                 return sortDirection === 'asc'
-                ? String(aVal).localeCompare(String(bVal))
-                : String(bVal).localeCompare(String(aVal));
+                    ? String(aVal).localeCompare(String(bVal))
+                    : String(bVal).localeCompare(String(aVal));
             });
         }
         return rows;
     }, [data, filterUploader, search, sortField, sortDirection, allColumns]);
 
-    // Handle sort click
     const handleSort = (field: string) => {
         if (sortField === field) {
             setSortDirection(dir => (dir === 'asc' ? 'desc' : 'asc'));
@@ -124,18 +119,16 @@ export function RatingsTableView({
                         onChange={e => setFilterUploader(e.target.value)}
                         label={`Filter by ${uploaderLabel}`}
                     >
-                        {showAverage && hasAverage && (
                         <MenuItem value="Average">
                             <Chip label="AVG" size="small" color="primary" /> Average
                         </MenuItem>
-                        )}
                         {allUploaders
-                            .filter(name => !showAverage || name !== 'Average')
+                            .filter(name => name !== 'Average')
                             .map(uploader => (
                                 <MenuItem key={uploader} value={uploader}>
                                     {uploader}
                                 </MenuItem>
-                        ))}
+                            ))}
                     </Select>
                 </FormControl>
                 <TextField
@@ -145,10 +138,10 @@ export function RatingsTableView({
                     size="small"
                     sx={{ minWidth: 200 }}
                 />
-                {filterUploader !== (hasAverage ? 'Average' : allUploaders[0]) && (
+                {filterUploader !== 'Average' && (
                     <IconButton
                         size="small"
-                        onClick={() => setFilterUploader(hasAverage ? 'Average' : allUploaders[0])}
+                        onClick={() => setFilterUploader('Average')}
                         sx={{ bgcolor: 'action.hover' }}
                     >
                         <ClearIcon />
@@ -160,8 +153,6 @@ export function RatingsTableView({
                     </Typography>
                 </Box>
             </Box>
-
-            {/* Table */}
             <TableContainer>
                 <Table>
                     <TableHead>
@@ -184,9 +175,18 @@ export function RatingsTableView({
                         {filteredRows.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={allColumns.length} align="center">
-                                    <Typography variant="body2" color="text.secondary">
-                                        No data found.
-                                    </Typography>
+                                    <Box sx={{ py: 6 }}>
+                                        <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
+                                            {filterUploader === 'Average'
+                                                ? "No data uploaded yet. Once submissions are received, the average will appear here."
+                                                : "No data for this uploader yet."}
+                                        </Typography>
+                                        {filterUploader === 'Average' && (
+                                            <Typography variant="body2" color="text.secondary">
+                                                Please upload at least one submission to see the average.
+                                            </Typography>
+                                        )}
+                                    </Box>
                                 </TableCell>
                             </TableRow>
                         ) : (
@@ -194,7 +194,7 @@ export function RatingsTableView({
                                 <TableRow key={idx} sx={{ '&:hover': { bgcolor: 'action.hover' } }}>
                                     {allColumns.map(col => (
                                         <TableCell key={col}>
-                                            {typeof row[col] === 'number'?
+                                            {typeof row[col] === 'number' ?
                                                 (
                                                     <Chip
                                                         label={row[col].toFixed(1)}
@@ -202,7 +202,7 @@ export function RatingsTableView({
                                                         size="small"
                                                         sx={{ fontWeight: 600, minWidth: 50 }}
                                                     />
-                            ):
+                                                ) :
                                                 (row[col])
                                             }
                                         </TableCell>
