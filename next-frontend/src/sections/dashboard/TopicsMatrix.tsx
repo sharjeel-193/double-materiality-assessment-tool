@@ -12,103 +12,103 @@ import {
     IconButton,
 } from '@mui/material';
 import { MdClear as ClearIcon } from 'react-icons/md';
-import { StakeholderRating, AnalystSubmission } from '@/lib/types';
+import { TopicRating, StakeholderSubmission } from '@/lib/types';
 import { MatrixMap } from '@/components';
 import { MatrixMapDatum } from '@/components/dashboard/MatrixMap';
 
-interface HRIAMapProps {
-    ratings: AnalystSubmission;
+interface TopicsMatrixProps {
+    ratings: StakeholderSubmission;
 }
 
-export function HRIAMap({ ratings }: HRIAMapProps) {
+export function TopicsMatrix({ ratings }: TopicsMatrixProps) {
 
-    const [selectedAnalyst, setSelectedAnalyst] = useState<string>('Average');
+    const [selectedStakeholder, setselectedStakeholder] = useState<string>('Average');
     const analysts = Object.keys(ratings).filter(name => name !== 'Average');
 
-    const getDataToDisplay = (): StakeholderRating[] => {
-        if (selectedAnalyst === 'Average') {
+    const getDataToDisplay = (): TopicRating[] => {
+        if (selectedStakeholder === 'Average') {
             return ratings['Average'] || [];
         } else {
-            return ratings[selectedAnalyst] || [];
+            return ratings[selectedStakeholder] || [];
         }
     };
 
-    const stakeholderData = getDataToDisplay();
+    const topicData = getDataToDisplay();
 
     // Transform data for MatrixMap (group by quadrant, or just one group)
     const scatterData = useMemo(() => {
-        if (stakeholderData.length === 0) return [];
+        if (topicData.length === 0) return [];
 
         // Group stakeholders by quadrant for different series
-        const highInfluenceHighImpact = stakeholderData.filter(s => s.influence >= 3 && s.impact >= 3);
-        const highInfluenceLowImpact = stakeholderData.filter(s => s.influence >= 3 && s.impact < 3);
-        const lowInfluenceHighImpact = stakeholderData.filter(s => s.influence < 3 && s.impact >= 3);
-        const lowInfluenceLowImpact = stakeholderData.filter(s => s.influence < 3 && s.impact < 3);
+        const highImpactHighFinancial = topicData.filter(s => s.impact_score >= 3 && s.financial_score >= 3);
+        const highImpactLowFinancial = topicData.filter(s => s.impact_score >= 3 && s.financial_score < 3);
+        const lowImpactHighFinancial = topicData.filter(s => s.impact_score < 3 && s.financial_score >= 3);
+        const lowImpactLowFinancial = topicData.filter(s => s.impact_score < 3 && s.financial_score < 3);
 
         const series: Array<{
             id: string;
             data: MatrixMapDatum[];
         }> = [];
 
-        if (highInfluenceHighImpact.length > 0) {
+        if (highImpactHighFinancial.length > 0) {
             series.push({
                 id: 'High Influence, High Impact',
-                data: highInfluenceHighImpact.map(s => ({
-                    x: s.impact,
-                    y: s.influence,
-                    stakeholder: s.name
+                data: highImpactHighFinancial.map(s => ({
+                    x: s.financial_score,
+                    y: s.impact_score,
+                    topic: s.topic
                 }))
             });
         }
 
-        if (highInfluenceLowImpact.length > 0) {
+        if (highImpactLowFinancial.length > 0) {
             series.push({
                 id: 'High Influence, Low Impact',
-                data: highInfluenceLowImpact.map(s => ({
-                    x: s.impact,
-                    y: s.influence,
-                    stakeholder: s.name
+                data: highImpactLowFinancial.map(s => ({
+                    x: s.financial_score,
+                    y: s.impact_score,
+                    topic: s.topic
                 }))
             });
         }
 
-        if (lowInfluenceHighImpact.length > 0) {
+        if (lowImpactHighFinancial.length > 0) {
             series.push({
                 id: 'Low Influence, High Impact',
-                data: lowInfluenceHighImpact.map(s => ({
-                    x: s.impact,
-                    y: s.influence,
-                    stakeholder: s.name
+                data: lowImpactHighFinancial.map(s => ({
+                    x: s.financial_score,
+                    y: s.impact_score,
+                    topic: s.topic
                 }))
             });
         }
 
-        if (lowInfluenceLowImpact.length > 0) {
+        if (lowImpactLowFinancial.length > 0) {
             series.push({
                 id: 'Low Influence, Low Impact',
-                data: lowInfluenceLowImpact.map(s => ({
-                    x: s.impact,
-                    y: s.influence,
-                    stakeholder: s.name
+                data: lowImpactLowFinancial.map(s => ({
+                    x: s.financial_score,
+                    y: s.impact_score,
+                    topic: s.topic
                 }))
             });
         }
 
         return series;
-    }, [stakeholderData]);
+    }, [topicData]);
 
     return (
         <Paper sx={{ p: 4, borderRadius: 3 }}>
             <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-                HRIA (Human Rights Impact Assessment) Map
+                Double Materiality Matrix Map
             </Typography>
             {/* Filter Controls */}
             <Box sx={{ display: 'flex', gap: 2, mb: 4, alignItems: 'center' }}>
                 <FormControl sx={{ minWidth: 200 }}>
                     <InputLabel>Select Data Source</InputLabel>
                     <Select
-                        value={selectedAnalyst}
-                        onChange={(e) => setSelectedAnalyst(e.target.value)}
+                        value={selectedStakeholder}
+                        onChange={(e) => setselectedStakeholder(e.target.value)}
                         label="Select Data Source"
                     >
                         <MenuItem value="Average">
@@ -124,10 +124,10 @@ export function HRIAMap({ ratings }: HRIAMapProps) {
                         ))}
                     </Select>
                 </FormControl>
-                {selectedAnalyst !== 'Average' && (
+                {selectedStakeholder !== 'Average' && (
                     <IconButton
                         size="small"
-                        onClick={() => setSelectedAnalyst('Average')}
+                        onClick={() => setselectedStakeholder('Average')}
                         sx={{ bgcolor: 'action.hover' }}
                     >
                         <ClearIcon />
@@ -135,11 +135,11 @@ export function HRIAMap({ ratings }: HRIAMapProps) {
                 )}
                 <Box sx={{ ml: 'auto' }}>
                     <Typography variant="body2" color="text.secondary">
-                        Showing {stakeholderData.length} stakeholders
+                        Showing {topicData.length} Topics
                     </Typography>
                 </Box>
             </Box>
-            {stakeholderData.length === 0 ? (
+            {topicData.length === 0 ? (
                 <Box sx={{
                     display: 'flex',
                     justifyContent: 'center',
@@ -155,9 +155,9 @@ export function HRIAMap({ ratings }: HRIAMapProps) {
                             No Data Available
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            {selectedAnalyst === 'Average'
+                            {selectedStakeholder === 'Average'
                                 ? 'No analyst submissions found to generate HRIA map'
-                                : `No data found for ${selectedAnalyst}`
+                                : `No data found for ${selectedStakeholder}`
                             }
                         </Typography>
                     </Box>

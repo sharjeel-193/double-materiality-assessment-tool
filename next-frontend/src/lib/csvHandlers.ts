@@ -1,6 +1,6 @@
 import { Stakeholder, CSVColumn } from '@/lib/types';
 
-const createCSV = (content: string, name: string) => {
+export const createCSV = (content: string, name: string) => {
     const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     

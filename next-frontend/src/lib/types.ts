@@ -38,11 +38,19 @@ export interface StakeholderRating {
 }
 
 export interface TopicRating {
-    id: number
-    relevance: number; // 1-5 scale
-    magnitude: number; // 1-5 scale
-    name: string;
-    dimension: string
+    id: string
+    impact_relevance: number; // 1-5 scale
+    impact_magnitude: number; // 1-5 scale
+    financial_relevance: number; // 1-5 scale
+    financial_magnitude: number; // 1-5 scale
+    topic: string;
+    dimension: string,
+    impact_score: number;
+    financial_score: number
+}
+
+export interface StakeholderSubmission {
+    [stakeholderName: string]: TopicRating[];
 }
 
 export interface AnalystSubmission {

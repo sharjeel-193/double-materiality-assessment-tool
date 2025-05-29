@@ -1,0 +1,42 @@
+{
+  "Standards": {
+        "susaf": {
+            "Environmental": [
+                {
+                    "Topic": "water",
+                    "Description": "Use and management of water resources.",
+                    "id": "susaf-e-1"
+                },
+                {
+                    "Topic": "pollution",
+                    "Description": "Prevention and management of pollution.",
+                    "id": "susaf-e-2"
+                }
+            ],
+            "Social": [
+                {
+                    "Topic": "labor practices",
+                    "Description": "Working conditions, wages, and employee rights.",
+                    "id": "susaf-s-1"
+                },
+                {
+                    "Topic": "community engagement",
+                    "Description": "Interactions and impacts on local communities.",
+                    "id": "susaf-s-2"
+                }
+            ],
+            "Governance": [
+                {
+                    "Topic": "business ethics",
+                    "Description": "Anti-corruption, transparency, and compliance.",
+                    "id": "susaf-b-1"
+                },
+                {
+                    "Topic": "board diversity",
+                    "Description": "Diversity and inclusion at the board level.",
+                    "id":"susaf-b-2"
+                }
+            ]
+        }
+    }
+}
