@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "Report" ALTER COLUMN "financialRadar" DROP DEFAULT,
+ALTER COLUMN "topStakeholders" DROP DEFAULT,
+ALTER COLUMN "topTopics" DROP DEFAULT,
+ALTER COLUMN "impactRadar" DROP DEFAULT,
+ALTER COLUMN "summary" DROP DEFAULT;

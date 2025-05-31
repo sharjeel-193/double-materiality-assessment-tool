@@ -1,15 +1,298 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-    provider = "prisma-client-js"
-    output   = "../generated/prisma"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "windows", "debian-openssl-3.0.x"]
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id          String   @id @default(uuid())
+  name        String    
+  address     String?
+  description String?
+  users       User[]
+  reports     Report[]
+
+  @@unique([name])
+}
+
+// New Report model
+model Report {
+  id                     String   @id @default(uuid())
+  year                   Int
+  companyId              String
+  company                Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  standardId             String
+  standard               Standard @relation(fields: [standardId], references: [id])
+  
+  // New numeric fields with defaults
+  totalStakeholders      Int      @default(0)
+  importantStakeholders  Int      @default(0)
+  totalTopics            Int      @default(0)
+  materialTopics         Int      @default(0)
+  totalImpacts           Int      @default(0)
+  totalFinancialEffects  Int      @default(0)
+  
+  // JSON fields for complex data
+  impactRadar            Json?   
+  financialRadar         Json?    
+  summary                String?  
+  topStakeholders        Json?    
+  topTopics              Json?    
+  
+  // Status field (1-8, default 1)
+  status                 Int      @default(1)
+  
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@unique([companyId, year])
+  context Context?
+  impacts Impact[]
+  submissions Submission[]
+  riskOpportunitys RiskOpportunity[]
+}
+
+
+model Context {
+  id                 String         @id @default(uuid())
+  location           LocationScope
+  type               ContextType
+  form               BusinessForm
+  size_employees     CompanySize
+  size_revenue       CompanySize
+  customer_scope     LocationScope
+  supply_chain_scope LocationScope
+  extra_details      String?   
+
+  report             Report         @relation(fields: [reportId], references: [id])
+  reportId           String         @unique
+
+  activities         Activity[]
+
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+}
+
+model Activity {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  type        String
+
+  context     Context   @relation(fields: [contextId], references: [id], onDelete: Cascade)
+  contextId   String
+
+  stakeholders Stakeholder[]
+
+  @@unique([name, contextId])
+}
+
+model Stakeholder {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+
+  activity    Activity? @relation(fields: [activityId], references: [id])
+  activityId  String?
+
+  avgInfluence  Float     @default(0.0)
+  avgImpact     Float     @default(0.0)
+
+  submissions Submission[]
+
+  StakeholderRating StakeholderRating[]
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([name, activityId])
+}
+
+
+
+
+model Impact {
+  id               String           @id @default(uuid())
+  title            String
+  description      String
+  scale            Float
+  scope            Float
+  irremediability  Float
+  likelihood       Float
+  type             ImpactType
+  orderOfEffect    OrderOfImpact
+  topicId          String
+  topic            Topic            @relation(fields: [topicId], references: [id])
+  reportId         String
+  report           Report           @relation(fields: [reportId], references: [id], onDelete: Cascade)
+}
+
+model RiskOpportunity {
+  id          String        @id @default(uuid())
+  title       String
+  description String
+  likelihood  Float
+  magnitude   Float
+  type        FinancialType
+  topicId     String
+  topic       Topic         @relation(fields: [topicId], references: [id])
+  reportId    String
+  report      Report        @relation(fields: [reportId], references: [id], onDelete: Cascade)
+}
+
+model Standard {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  description String?
+  reports     Report[]
+  dimensions  Dimension[]
+}
+
+model User {
+  id          String       @id @default(uuid())
+  name        String
+  email       String       @unique
+  password    String
+  role        UserRole     @default(TEAM_MEMBER)
+  companyId   String
+  company     Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  submissions Submission[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Dimension {
+  id         String   @id @default(uuid())
+  name       String
+  standardId String
+  standard   Standard @relation(fields: [standardId], references: [id], onDelete: Cascade)
+  topics     Topic[]
+
+  @@unique([name, standardId])
+}
+
+model Topic {
+  id               String            @id @default(uuid())
+  name             String
+  description      String?
+  dimensionId      String
+  dimension        Dimension         @relation(fields: [dimensionId], references: [id], onDelete: Cascade)
+  topicRatings     TopicRating[]
+  impacts          Impact[]
+  riskOpportunities RiskOpportunity[]
+
+  @@unique([name, dimensionId])
+}
+
+model Submission {
+  id                 String              @id @default(uuid())
+  userId             String?
+  stakeholderId      String?
+  reportId           String? 
+  type               SubmissionType
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  user               User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stakeholder        Stakeholder?        @relation(fields: [stakeholderId], references: [id], onDelete: Cascade)
+  report             Report?             @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  topicRatings       TopicRating[]
+  stakeholderRatings StakeholderRating[]
+}
+
+model TopicRating {
+  id           String     @id @default(uuid())
+  submissionId String
+  topicId      String
+  ratingType   RatingType
+  relevance    Float
+  magnitude    Float
+  score        Float?
+  remarks      String?
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  topic        Topic      @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([submissionId, topicId, ratingType])
+}
+
+
+
+model StakeholderRating {
+  id            String      @id @default(uuid())
+  submissionId  String
+  stakeholderId String
+  influence     Float
+  impact        Float
+  score         Float?
+  submission    Submission  @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  stakeholder   Stakeholder @relation(fields: [stakeholderId], references: [id], onDelete: Cascade)
+
+  @@unique([submissionId, stakeholderId])
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  TEAM_LEADER
+  TEAM_MEMBER
+}
+
+enum OrderOfImpact {
+  IMMEDIATE
+  ENABLING
+  STRUCTURAL
+}
+
+enum ImpactType {
+  POSITIVE
+  NEGATIVE
+}
+
+enum FinancialType {
+  RISK
+  OPPORTUNITY
+}
+
+enum RatingType {
+  IMPACT
+  FINANCIAL
+}
+
+enum SubmissionType {
+  INTERNAL
+  STAKEHOLDER
+}
+
+enum LocationScope {
+  LOCAL
+  NATIONAL
+  CONTINENTAL
+  GLOBAL
+}
+
+enum ContextType {
+  PRODUCTION
+  TRADE
+  SERVICE
+  EXTRACTION
+}
+
+enum BusinessForm {
+  SOLE_PROPRIETORSHIP
+  PARTNERSHIP
+  CORPORATION
+}
+
+enum CompanySize {
+  SMALLER
+  SMALL
+  MEDIUM
+  BIG
+}
+
+enum ActivityType {
+  UPSTREAM
+  DOWNSTREAM
 }

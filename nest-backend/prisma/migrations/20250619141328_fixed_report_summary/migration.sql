@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Report" ALTER COLUMN "summary" SET DEFAULT '',
+ALTER COLUMN "summary" SET DATA TYPE TEXT;
