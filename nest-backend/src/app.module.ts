@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { StandardModule } from './standard/standard.module';
 import { DimensionModule } from './dimension/dimension.module';
+import { TopicModule } from './topic/topic.module';
 
 @Module({
     imports: [
@@ -24,6 +25,7 @@ import { DimensionModule } from './dimension/dimension.module';
         AuthModule,
         StandardModule,
         DimensionModule,
+        TopicModule,
     ],
     controllers: [AppController],
     providers: [AppService], // Remove PrismaService, UserService, UserResolver
