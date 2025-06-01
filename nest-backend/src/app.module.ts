@@ -5,6 +5,8 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { PrismaModule } from './prisma/prisma.module';
 import { CompanyModule } from './company/company.module';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
 
 @Module({
     imports: [
@@ -12,9 +14,12 @@ import { CompanyModule } from './company/company.module';
             driver: ApolloDriver,
             autoSchemaFile: true, // Enable auto-schema generation
             graphiql: true,
+            context: ({ req, res }) => ({ req, res }),
         }),
         PrismaModule,
         CompanyModule,
+        UserModule,
+        AuthModule,
     ],
     controllers: [AppController],
     providers: [AppService], // Remove PrismaService, UserService, UserResolver
