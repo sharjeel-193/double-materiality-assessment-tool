@@ -19,8 +19,9 @@ import {
     MdDashboard as DashboardIcon
 } from 'react-icons/md'
 import Image from 'next/image';
+import Link from 'next/link';
 
-import { useThemeContext } from '@/providers';
+import { useThemeContext, useAuthContext } from '@/providers';
 import { ThemeSwitcher } from '../ui/ThemeSwitcher';
 import { LandingPageNavDrawer } from './LandingPageNavDrawer';
 import { landingPageNavItems as navItems } from '@/data';
@@ -45,6 +46,8 @@ export function LandingPageNavbar() {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'))
     const { mode } = useThemeContext();
+
+    const { isAuthenticated } = useAuthContext()
 
     // Handle scroll effects
     useEffect(() => {
@@ -197,25 +200,27 @@ export function LandingPageNavbar() {
                     >
                         <ThemeSwitcher />
                         
-                        <Button
-                        variant="contained"
-                        startIcon={<DashboardIcon />}
-                        sx={{
-                            px: 3,
-                            py: 1.2,
-                            borderRadius: 2,
-                            fontWeight: 600,
-                            textTransform: 'none',
-                            boxShadow: 2,
-                            transition: 'all 0.2s ease-in-out',
-                            '&:hover': {
-                                transform: 'translateY(-2px)',
-                                boxShadow: 4,
-                            },
-                        }}
-                        >
-                        Go To Dashboard
-                        </Button>
+                        <Link href={isAuthenticated ? '/dashboard': '/login'}>
+                            <Button
+                                variant="contained"
+                                startIcon={<DashboardIcon />}
+                                sx={{
+                                    px: 3,
+                                    py: 1.2,
+                                    borderRadius: 2,
+                                    fontWeight: 600,
+                                    textTransform: 'none',
+                                    boxShadow: 2,
+                                    transition: 'all 0.2s ease-in-out',
+                                    '&:hover': {
+                                        transform: 'translateY(-2px)',
+                                        boxShadow: 4,
+                                    },
+                                }}
+                            >
+                                Go To Dashboard
+                            </Button>
+                        </Link>
                     </Box>
 
                     {/* Mobile Menu Button */}

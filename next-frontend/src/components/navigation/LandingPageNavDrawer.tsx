@@ -17,9 +17,10 @@ import {
 } from 'react-icons/md';
 import Image from 'next/image';
 
-import { useThemeContext } from '@/providers';
+import { useAuthContext, useThemeContext } from '@/providers';
 import { ThemeSwitcher } from '../ui/ThemeSwitcher';
 import { landingPageNavItems as navItems } from '@/data';
+import Link from 'next/link';
 
 interface LandingPageNavDrawerProps {
     isOpen: boolean;
@@ -36,7 +37,7 @@ export function LandingPageNavDrawer({
 }: LandingPageNavDrawerProps) {
     const { mode } = useThemeContext();
     const theme = useTheme();
-
+    const { isAuthenticated } = useAuthContext()
 
     const handleSectionClick = (sectionId: string) => {
         scrollToSection(sectionId);
@@ -154,26 +155,28 @@ export function LandingPageNavDrawer({
                         <ThemeSwitcher />
                     </Box>
                 
-                    <Button
-                        variant="contained"
-                        fullWidth
-                        startIcon={<DashboardIcon size={20} />}
-                        sx={{
-                            py: 1.5,
-                            borderRadius: 2,
-                            fontWeight: 600,
-                            textTransform: 'none',
-                            transition: theme.transitions.create(['transform', 'box-shadow'], {
-                                duration: theme.transitions.duration.shorter,
-                            }),
-                            '&:hover': {
-                                transform: 'translateY(-2px)',
-                                boxShadow: theme.shadows[4],
-                            },
-                        }}
-                    >
-                        Go To Dashboard
-                    </Button>
+                    <Link href={isAuthenticated? '/dashboard' : '/login'}>
+                        <Button
+                            variant="contained"
+                            fullWidth
+                            startIcon={<DashboardIcon size={20} />}
+                            sx={{
+                                py: 1.5,
+                                borderRadius: 2,
+                                fontWeight: 600,
+                                textTransform: 'none',
+                                transition: theme.transitions.create(['transform', 'box-shadow'], {
+                                    duration: theme.transitions.duration.shorter,
+                                }),
+                                '&:hover': {
+                                    transform: 'translateY(-2px)',
+                                    boxShadow: theme.shadows[4],
+                                },
+                            }}
+                        >
+                            Go To Dashboard
+                        </Button>
+                    </Link>
                 </Box>
             </Box>
         </Drawer>
