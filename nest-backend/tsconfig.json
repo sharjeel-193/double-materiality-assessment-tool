@@ -18,5 +18,8 @@
         "noImplicitAny": false,
         "strictBindCallApply": false,
         "noFallthroughCasesInSwitch": false
-    }
+    },
+    "exclude": [
+        "prisma/seed.ts"
+    ]
 }
