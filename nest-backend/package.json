@@ -18,7 +18,8 @@
         "test:cov": "jest --coverage",
         "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
         "test:e2e": "jest --config ./test/jest-e2e.json",
-        "copy:prisma": "cp generated/prisma/libquery_engine-debian-openssl-3.0.x.so.node node_modules/@prisma/client/ || true"
+        "copy:prisma": "cp generated/prisma/libquery_engine-debian-openssl-3.0.x.so.node node_modules/@prisma/client/ || true",
+        "db:seed": "tsx scripts/seed-topics.ts"
     },
     "dependencies": {
         "@nestjs/apollo": "^13.1.0",
@@ -36,8 +37,10 @@
         "class-validator": "^0.14.2",
         "graphql": "^16.11.0",
         "passport": "^0.7.0",
+        "passport-jwt": "^4.0.1",
         "reflect-metadata": "^0.2.2",
-        "rxjs": "^7.8.1"
+        "rxjs": "^7.8.1",
+        "tsx": "^4.19.4"
     },
     "devDependencies": {
         "@eslint/eslintrc": "^3.2.0",
