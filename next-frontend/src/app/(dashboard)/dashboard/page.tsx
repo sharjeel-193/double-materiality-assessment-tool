@@ -1,3 +1,6 @@
+"use client";
+
+import { useCompanyContext } from '@/providers/CompanyContextProvider';
 import {
     Container,
     Box,
@@ -6,6 +9,10 @@ import {
 
 
 export default function DashboardPage() {
+    const { company, loading } = useCompanyContext();
+
+    if (loading) return <div>Loading company data...</div>;
+    if (!company) return <div>No company data available.</div>;
     return (
         <Container maxWidth="lg">
             <Box
@@ -15,7 +22,7 @@ export default function DashboardPage() {
                 }}
             >
                 <Typography>
-                    THIS IS THE DASHBOARD
+                    {company.name}
                 </Typography>
             </Box>
         </Container>
