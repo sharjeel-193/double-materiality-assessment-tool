@@ -5,6 +5,7 @@ import { DashboardNavbar, DashboardSidebar } from '@/components';
 import { Box } from '@mui/material';
 import { CompanyContextProvider } from '@/providers/CompanyContextProvider';
 import withProtectedRoute from '@/auth/withProtectedRoute'
+import { ReportContextProvider } from '@/providers';
 
 function DashboardLayout({
     children,
@@ -19,16 +20,18 @@ function DashboardLayout({
     return (
         <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
             <CompanyContextProvider>
-                <DashboardSidebar 
-                    mobileOpen={mobileOpen}
-                    onMobileClose={() => setMobileOpen(false)}
-                />
-                <DashboardNavbar onMobileMenuToggle={handleMobileMenuToggle} />
-                <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', ml: { lg: '280px' } }}>
-                    <Box component="main" sx={{ flexGrow: 1, m: 2 }}>
-                        {children}
+                <ReportContextProvider>
+                    <DashboardSidebar 
+                        mobileOpen={mobileOpen}
+                        onMobileClose={() => setMobileOpen(false)}
+                    />
+                    <DashboardNavbar onMobileMenuToggle={handleMobileMenuToggle} />
+                    <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', ml: { lg: '280px' } }}>
+                        <Box component="main" sx={{ flexGrow: 1, m: 2 }}>
+                            {children}
+                        </Box>
                     </Box>
-                </Box>
+                </ReportContextProvider>
             </CompanyContextProvider>
             {/* <Footer /> */}
         </Box>
