@@ -11,6 +11,7 @@ import { StandardModule } from './standard/standard.module';
 import { DimensionModule } from './dimension/dimension.module';
 import { TopicModule } from './topic/topic.module';
 import { ReportModule } from './report/report.module';
+import { ContextModule } from './context/context.module';
 
 @Module({
     imports: [
@@ -28,6 +29,7 @@ import { ReportModule } from './report/report.module';
         DimensionModule,
         TopicModule,
         ReportModule,
+        ContextModule,
     ],
     controllers: [AppController],
     providers: [AppService], // Remove PrismaService, UserService, UserResolver
