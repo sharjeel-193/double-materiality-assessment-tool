@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import { DashboardNavbar, DashboardSidebar } from '@/components';
 import { Box } from '@mui/material';
+import { CompanyContextProvider } from '@/providers/CompanyContextProvider';
+import withProtectedRoute from '@/auth/withProtectedRoute'
 
-export default function DashboardLayout({
+function DashboardLayout({
     children,
 }: {
     children: React.ReactNode;
@@ -16,17 +18,21 @@ export default function DashboardLayout({
     };
     return (
         <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-            <DashboardSidebar 
-                mobileOpen={mobileOpen}
-                onMobileClose={() => setMobileOpen(false)}
-            />
-            <DashboardNavbar onMobileMenuToggle={handleMobileMenuToggle} />
-            <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', ml: { lg: '280px' } }}>
-                <Box component="main" sx={{ flexGrow: 1, m: 2 }}>
-                    {children}
+            <CompanyContextProvider>
+                <DashboardSidebar 
+                    mobileOpen={mobileOpen}
+                    onMobileClose={() => setMobileOpen(false)}
+                />
+                <DashboardNavbar onMobileMenuToggle={handleMobileMenuToggle} />
+                <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', ml: { lg: '280px' } }}>
+                    <Box component="main" sx={{ flexGrow: 1, m: 2 }}>
+                        {children}
+                    </Box>
                 </Box>
-            </Box>
+            </CompanyContextProvider>
             {/* <Footer /> */}
         </Box>
     );
 }
+
+export default withProtectedRoute(DashboardLayout)
