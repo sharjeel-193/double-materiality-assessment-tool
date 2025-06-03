@@ -19,7 +19,7 @@ import {
     MdNotifications as NotificationsIcon,
 } from 'react-icons/md';
 import { useRouter } from 'next/navigation';
-import { useThemeContext } from '@/providers';
+import { useAuthContext, useThemeContext } from '@/providers';
 import { ThemeSwitcher } from '../ui/ThemeSwitcher';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -31,6 +31,7 @@ interface DashboardNavbarProps {
 export function DashboardNavbar({ onMobileMenuToggle }: DashboardNavbarProps) {
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const { isAuthenticated, logout, user }= useAuthContext()
 
     const { mode } = useThemeContext();
     const router = useRouter();
@@ -44,6 +45,7 @@ export function DashboardNavbar({ onMobileMenuToggle }: DashboardNavbarProps) {
     };
 
     const handleLogout = () => {
+        logout()
         router.push('/');
         handleClose();
     };
@@ -170,6 +172,9 @@ export function DashboardNavbar({ onMobileMenuToggle }: DashboardNavbarProps) {
                         onClose={handleClose}
                         sx={{ mt: 1 }}
                     >
+                        <MenuItem>
+                            {isAuthenticated ? user?.name: ''}
+                        </MenuItem>
                         <MenuItem onClick={handleProfile}>
                             <AccountCircleIcon  />
                             Profile
