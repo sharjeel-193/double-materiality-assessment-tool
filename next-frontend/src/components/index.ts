@@ -19,3 +19,4 @@ export { UploaderSubmissions } from './ui/UploaderSubmissions'
 
 export {RatingsTableView} from './dashboard/RatingsTableView'
 export { MatrixMap } from './dashboard/MatrixMap'
+export { Loader } from './ui/Loader'
