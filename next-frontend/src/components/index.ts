@@ -19,4 +19,11 @@ export { UploaderSubmissions } from './ui/UploaderSubmissions'
 
 export {RatingsTableView} from './dashboard/RatingsTableView'
 export { MatrixMap } from './dashboard/MatrixMap'
+
 export { Loader } from './ui/Loader'
+
+export { CreateReportDialog } from './dashboard/CreateReportDialog'
+export { CreateFirstReport } from './dashboard/CreateFirstReport'
+export { ReportSelector } from './dashboard/ReportSelector'
+
+export { ConfirmationDialog } from './ui/ConfirmationDialog'
