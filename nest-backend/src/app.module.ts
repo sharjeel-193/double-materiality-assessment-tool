@@ -12,6 +12,7 @@ import { DimensionModule } from './dimension/dimension.module';
 import { TopicModule } from './topic/topic.module';
 import { ReportModule } from './report/report.module';
 import { ContextModule } from './context/context.module';
+import { ActivityModule } from './activity/activity.module';
 
 @Module({
     imports: [
@@ -30,6 +31,7 @@ import { ContextModule } from './context/context.module';
         TopicModule,
         ReportModule,
         ContextModule,
+        ActivityModule,
     ],
     controllers: [AppController],
     providers: [AppService], // Remove PrismaService, UserService, UserResolver

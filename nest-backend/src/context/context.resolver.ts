@@ -37,6 +37,7 @@ export class ContextResolver {
     async contextByReport(
         @Args('reportId', { type: () => String }) reportId: string,
     ) {
+        console.log({ Report: reportId });
         return this.contextService.findByReport(reportId);
     }
 
