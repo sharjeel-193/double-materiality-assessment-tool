@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -10,23 +10,33 @@ import {
 } from '@mui/material';
 import { MdAdd as AddIcon, MdArrowForward as ArrowIcon } from 'react-icons/md';
 import { ActivityList, ActivityDialog } from '@/components';
-import { Activity } from '@/lib/types'
-import { getDummyActivities } from '@/lib/dummyData';
+import { Activity, CreateActivityInput, UpdateActivityInput } from '@/types';
 
 
 
 interface supplyChainProps {
-    isEditMode: boolean;
+    activities: Activity[];
+    createActivity: (input: CreateActivityInput) => Promise<Activity | null>;
+    updateActivity: (id: string, input: UpdateActivityInput) => Promise<Activity | null>
+    deleteActivity: (id: string) => Promise<boolean>;
+    currentContextId: string;
 }
 
-export function SupplyChain({isEditMode}: supplyChainProps) {
-    const [activities, setActivities] = useState<Activity[]>(getDummyActivities);
+export function SupplyChain({
+    activities,
+    createActivity,
+    updateActivity,
+    deleteActivity,
+    currentContextId
+}: supplyChainProps) {
+    // const [activities, setActivities] = useState<Activity[]>(getDummyActivities);
 
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [currentActivity, setCurrentActivity] = useState<Activity | null>(null);
+    const [error, setError] = useState<string | null>(null)
 
     const handleAddActivity = () => {
-        setCurrentActivity({ id: 0, type: 'Upstream', name: '', description: '' });
+        setCurrentActivity({ id: 'new', type: 'UPSTREAM', name: '', description: '', contextId: currentContextId });
         setEditDialogOpen(true);
     };
 
@@ -35,8 +45,8 @@ export function SupplyChain({isEditMode}: supplyChainProps) {
         setEditDialogOpen(true);
     };
 
-    const handleDeleteActivity = (id: number) => {
-        setActivities(prev => prev.filter(act => act.id !== id));
+    const handleDeleteActivity = (id: string) => {
+        deleteActivity(id)
     };
 
     const handleDialogClose = () => {
@@ -44,20 +54,60 @@ export function SupplyChain({isEditMode}: supplyChainProps) {
         setCurrentActivity(null);
     };
 
-    const handleDialogSave = (activityData: Omit<Activity, 'id'>) => {
-        if (currentActivity?.id === 0) {
-            // Add new
-            const newId = activities.length ? Math.max(...activities.map(a => a.id)) + 1 : 1;
-            setActivities(prev => [...prev, { ...activityData, id: newId }]);
-        } else if (currentActivity?.id) {
-            // Update existing
-            setActivities(prev => prev.map(a => a.id === currentActivity.id ? { ...activityData, id: currentActivity.id } : a));
-        }
-        handleDialogClose();
-    };
+    useEffect(() => {
+        if (error) {
+            const timer = setTimeout(() => {
+                setError(null);
+            }, 3000);
 
-    const upstreamActivities = activities.filter(a => a.type === 'Upstream');
-    const downstreamActivities = activities.filter(a => a.type === 'Downstream');
+            // Cleanup function to clear timeout if component unmounts or error changes
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
+
+    const handleDialogSave = async (activityData: Activity) => {
+    try {
+        if (currentActivity?.id === 'new') {
+            // Create new activity
+            const createInput: CreateActivityInput = {
+                name: activityData.name,
+                description: activityData.description || undefined,
+                type: activityData.type,
+                contextId: currentContextId
+            };
+            
+            const result = await createActivity(createInput);
+            if (!result) {
+                setError('Failed to Create Activity ... Please Try Again Later')
+                console.error('Failed to create activity');
+                return;
+            }
+        } else if (currentActivity?.id) {
+            // Update existing activity
+            const updateInput: UpdateActivityInput = {
+                name: activityData.name,
+                description: activityData.description || undefined,
+                type: activityData.type
+            };
+            
+            const result = await updateActivity(currentActivity.id, updateInput);
+            if (!result) {
+                setError('Failed to Update Activity ... Please Try Again Later')
+                console.error('Failed to update activity');
+                return;
+            }
+        }
+        
+        handleDialogClose();
+    } catch (error) {
+        console.error('Error saving activity:', error);
+        // Optionally show error message to user
+    }
+};
+
+
+    const upstreamActivities = activities.filter(a => a.type === 'UPSTREAM');
+    const downstreamActivities = activities.filter(a => a.type === 'DOWNSTREAM');
 
     return (
         <Paper sx={{ p: 4, borderRadius: 3 }}>
@@ -65,15 +115,14 @@ export function SupplyChain({isEditMode}: supplyChainProps) {
             <Typography variant="h5" sx={{ fontWeight: 600 }}>
                 Supply Chain
             </Typography>
-           {isEditMode &&  
-           <Button 
+            <Button 
                 variant="outlined" 
                 startIcon={<AddIcon />} 
                 onClick={handleAddActivity}
                 sx={{ borderRadius: 2 }}
             >
                 Add Activity
-            </Button>}
+            </Button>
         </Box>
 
         {/* Supply Chain Flow Visualization */}
@@ -95,7 +144,6 @@ export function SupplyChain({isEditMode}: supplyChainProps) {
                 type="Upstream"
                 onEdit={handleEditActivity}
                 onDelete={handleDeleteActivity}
-                isEditMode={isEditMode}
             />
             </Box>
 
@@ -158,7 +206,6 @@ export function SupplyChain({isEditMode}: supplyChainProps) {
                 type="Downstream"
                 onEdit={handleEditActivity}
                 onDelete={handleDeleteActivity}
-                isEditMode={isEditMode}
             />
             </Box>
         </Box>
@@ -183,6 +230,8 @@ export function SupplyChain({isEditMode}: supplyChainProps) {
             activity={currentActivity}
             onClose={handleDialogClose}
             onSave={handleDialogSave}
+            error={error}
+            loading={false}
         />
         </Paper>
     );
