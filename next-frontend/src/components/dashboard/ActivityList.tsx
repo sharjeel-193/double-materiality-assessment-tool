@@ -11,17 +11,16 @@ import {
   useTheme,
 } from '@mui/material';
 import { MdEdit as EditIcon, MdDelete as DeleteIcon } from 'react-icons/md';
-import { Activity } from '@/lib/types';
+import { Activity } from '@/types';
 
 interface ActivityListProps {
     activities: Activity[];
     type: 'Upstream' | 'Downstream';
     onEdit: (activity: Activity) => void;
-    onDelete: (id: number) => void;
-    isEditMode: boolean;
+    onDelete: (id: string) => void;
 }
 
-export function ActivityList({ activities, type, onEdit, onDelete, isEditMode }: ActivityListProps) {
+export function ActivityList({ activities, type, onEdit, onDelete }: ActivityListProps) {
     const isUpstream = type === 'Upstream';
     const theme = useTheme()
     
@@ -67,18 +66,16 @@ export function ActivityList({ activities, type, onEdit, onDelete, isEditMode }:
                     >
                         No {type.toLowerCase()} activities added
                     </Typography>
-                    {isEditMode && (
-                        <Typography 
-                            variant="caption" 
-                            sx={{ 
-                                textAlign: 'center',
-                                mt: 0.5,
-                                opacity: 0.8,
-                            }}
-                        >
-                            Click Add Activity to get started
-                        </Typography>
-                    )}
+                    <Typography 
+                        variant="caption" 
+                        sx={{ 
+                            textAlign: 'center',
+                            mt: 0.5,
+                            opacity: 0.8,
+                        }}
+                    >
+                        Click Add Activity to get started
+                    </Typography>
                 </Box>
             ) : (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -124,37 +121,35 @@ export function ActivityList({ activities, type, onEdit, onDelete, isEditMode }:
                                         </Typography>
                                     </Box>
 
-                                    {isEditMode && (
-                                        <Box
-                                            sx={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: 0.5,
-                                                flexShrink: 0,
+                                    <Box
+                                        sx={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 0.5,
+                                            flexShrink: 0,
+                                        }}
+                                    >
+                                        <IconButton 
+                                            size="small" 
+                                            onClick={() => onEdit(activity)}
+                                            sx={{ 
+                                                color: 'inherit',
+                                                bgcolor: 'rgba(255, 255, 255, 0.1)',
                                             }}
                                         >
-                                            <IconButton 
-                                                size="small" 
-                                                onClick={() => onEdit(activity)}
-                                                sx={{ 
-                                                    color: 'inherit',
-                                                    bgcolor: 'rgba(255, 255, 255, 0.1)',
-                                                }}
-                                            >
-                                                <EditIcon size={16} />
-                                            </IconButton>
-                                            <IconButton 
-                                                size="small" 
-                                                onClick={() => onDelete(activity.id)}
-                                                sx={{ 
-                                                    color: 'inherit',
-                                                    bgcolor: 'rgba(255, 255, 255, 0.1)',
-                                                }}
-                                            >
-                                                <DeleteIcon size={16} />
-                                            </IconButton>
-                                        </Box>
-                                    )}
+                                            <EditIcon size={16} />
+                                        </IconButton>
+                                        <IconButton 
+                                            size="small" 
+                                            onClick={() => onDelete(activity.id)}
+                                            sx={{ 
+                                                color: 'inherit',
+                                                bgcolor: 'rgba(255, 255, 255, 0.1)',
+                                            }}
+                                        >
+                                            <DeleteIcon size={16} />
+                                        </IconButton>
+                                    </Box>
                                 </Box>
                             </Box>
 
