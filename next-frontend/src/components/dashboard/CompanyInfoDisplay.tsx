@@ -2,28 +2,26 @@
 
 import React from 'react';
 import { Grid, Typography, Box } from '@mui/material';
-import { CompanyCharacteristics } from '@/lib/types';
+import { Context } from '@/types';
 
 
 interface CompanyInfoDisplayProps {
-    data: CompanyCharacteristics;
+    data: Context;
+    companyName: string;
 }
 
-export function CompanyInfoDisplay({ data }: CompanyInfoDisplayProps) {
+export function CompanyInfoDisplay({ data, companyName }: CompanyInfoDisplayProps) {
     const displayFields = [
-        { label: 'Company Name', value: data.companyName, highlight: true },
-        { label: 'Date', value: data.date },
-        { label: 'Business Location', value: data.businessLocation },
-        { label: 'Business Type', value: data.businessType },
-        { label: 'Legal Form', value: data.legalForm },
-        { label: 'Company Size (Employees)', value: data.companySizeEmployees },
-        { label: 'Company Size (Revenue)', value: data.companySizeRevenue },
-        { label: 'Product Spectrum', value: data.productSpectrum },
-        { label: 'Customer Spectrum', value: data.customerSpectrum },
-        { label: 'Supply Chain Scope', value: data.supplyChainScope },
-        { label: 'Material Spectrum', value: data.materialSpectrum },
-        { label: 'Special Features', value: data.specialFeatures },
-        { label: 'Extra Details', value: data.extraDetails },
+        { label: 'Company Name', value: companyName, highlight: true },
+        { label: 'Date', value: data.createdAt },
+        { label: 'Business Location', value: data.location },
+        { label: 'Business Type', value: data.type },
+        { label: 'Legal Form', value: data.form },
+        { label: 'Company Size (Employees)', value: data.size_employees },
+        { label: 'Company Size (Revenue)', value: data.size_revenue },
+        { label: 'Customer Spectrum', value: data.customer_scope },
+        { label: 'Supply Chain Scope', value: data.supply_chain_scope },
+        { label: 'Extra Details', value: data.extra_details },
     ];
 
     return (

@@ -1,85 +1,93 @@
 "use client"
-import React, {useState} from 'react';
-import { Box, Typography, Button } from '@mui/material';
-import { MdEdit as EditIcon, MdClose as CloseIcon, MdSave as SaveIcon } from 'react-icons/md';
+import React, { Suspense, useEffect } from 'react';
+import { Box, Typography } from '@mui/material';
 import { CompanyCharacteristics, SupplyChain } from '@/sections';
+import { useActivity, useContextContext } from '@/hooks';
+import { useReportContext } from '@/providers';
+import { Loader } from '@/components';
 
 export default function CompanyContextPage() {
-    const [isEditMode, setIsEditMode] = useState(false)
-    const handleEditToggle = () => {
-        setIsEditMode(!isEditMode);
-    };
+    const { 
+        context,  
+        fetchContextByReport, 
+        createContext, 
+        updateContext, 
+    } = useContextContext();
+    
+    const { currentReport } = useReportContext();
+    const {
+        activities,
+        getActivitiesByContext,
+        createActivity,
+        updateActivity,
+        deleteActivity
+    } = useActivity()
 
-    const handleSave = () => {
-        // Save logic here
-        console.log('Saving all changes...');
-        setIsEditMode(false);
-    };
+    // Fetch context when report changes
+    useEffect(() => {
+        if (currentReport?.id) {
+            console.log("Fetching context for report:", currentReport.id);
+            fetchContextByReport(currentReport.id);
+        }
+    }, [currentReport?.id, fetchContextByReport]);
 
-    const handleCancel = () => {
-        // Cancel logic - could revert changes
-        setIsEditMode(false);
-    };
+    useEffect(() => {
+        console.log('Checking', context)
+        if(context){
+            getActivitiesByContext(context?.id)
+            console.log('Now', activities)
+        }
+    }, [context, getActivitiesByContext])
+
+    const isNewContext = !context?.id;
+
+
     return (
         <Box>
-            <Box
-                display={'flex'}
-                alignItems={'center'}
-                justifyContent={'space-between'}
-            >
+
+            {/* Header */}
+            <Box sx={{ mb: 4 }}>
                 <Typography
-                    className='gradient-color-heading'
+                    className="gradient-color-heading"
                     variant="h2"
                     component="h2"
-                    sx={{ mb: 3 }} // Fixed: Use sx instead of direct prop
+                    sx={{ mb: 1 }}
                 >
                     Company Context
                 </Typography>
-                {
-                    isEditMode?
-                    <Button
-                        variant="outlined"
-                        startIcon={<CloseIcon />}
-                        onClick={handleCancel}
-                        sx={{ borderRadius: 2 }}
-                    >
-                        Cancel
-                    </Button>:
-                    <Button
-                        variant="contained"
-                        startIcon={<EditIcon />}
-                        onClick={handleEditToggle}
-                        sx={{ borderRadius: 2 }}
-                    >
-                        Edit
-                    </Button>   
-                }
+                {isNewContext && (
+                    <Typography variant="body2" color="text.secondary">
+                        No context found for this report. Create one to get started.
+                    </Typography>
+                )}
             </Box>
-            
 
-            <CompanyCharacteristics isEditMode={isEditMode} />
-            <SupplyChain isEditMode={isEditMode} />
-            {isEditMode &&
-            <Box
-                sx={{
-                    display: 'flex', 
-                    justifyContent: 'center', 
-                    mt: 4,
-                    pt: 3,
-                    borderTop: '1px solid',
-                    borderColor: 'divider'
-                }}
-            >
-                <Button
-                    variant="contained"
-                    size="large"
-                    startIcon={<SaveIcon />}
-                    onClick={handleSave}
-                    sx={{ borderRadius: 3 }}
-                >
-                    Save All Changes
-                </Button>  
-            </Box>}
+            {/* Company Characteristics Section */}
+            <CompanyCharacteristics 
+                contextData={context}
+                updateData={updateContext}
+                createData={createContext}
+                currentReportId={currentReport?.id}
+            />
+
+            {
+                context &&
+                <Suspense fallback={<Loader variant='inline' />}>
+                    <SupplyChain
+                        activities={activities}
+                        createActivity={createActivity}
+                        updateActivity={updateActivity}
+                        deleteActivity={deleteActivity}
+                        currentContextId={context?.id}
+                    />
+                </Suspense>
+            }
+
+            {/* Supply Chain Section */}
+            {/* <SupplyChain 
+                contextData={context}
+                loading={loading}
+            /> */}
         </Box>
     );
 }
