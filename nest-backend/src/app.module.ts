@@ -15,6 +15,7 @@ import { ContextModule } from './context/context.module';
 import { ActivityModule } from './activity/activity.module';
 import { StakeholderModule } from './stakeholder/stakeholder.module';
 import { UserSubmissionModule } from './user-submission/user-submission.module';
+import { StakeholderSubmissionModule } from './stakeholder-submission/stakeholder-submission.module';
 
 @Module({
     imports: [
@@ -36,6 +37,7 @@ import { UserSubmissionModule } from './user-submission/user-submission.module';
         ActivityModule,
         StakeholderModule,
         UserSubmissionModule,
+        StakeholderSubmissionModule,
     ],
     controllers: [AppController],
     providers: [AppService], // Remove PrismaService, UserService, UserResolver
