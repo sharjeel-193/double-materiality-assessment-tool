@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Tabs, Tab, Typography } from '@mui/material';
 import { PotentialStakeholders, StakeholderRatings, HRIAMap } from '@/sections';
+import { useStakeholder } from '@/hooks';
+import { useReportContext } from '@/providers';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -37,10 +39,27 @@ function a11yProps(index: number) {
 
 export default function StakeholdersPage() {
     const [value, setValue] = useState(0);
+    const { currentReport } = useReportContext();
+    const {
+        stakeholders,
+        stakeholderLoading,
+        stakeholderError,
+        stakeholderMessage,
+        createStakeholder,
+        updateStakeholder,
+        fetchStakeholdersByReport,
+        deleteStakeholder
+    } = useStakeholder()
 
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
     };
+
+    useEffect(() => {
+        if (currentReport?.id) {
+            fetchStakeholdersByReport(currentReport.id)
+        }
+    }, [currentReport?.id, fetchStakeholdersByReport]);
 
     return (
         <Box>
@@ -75,7 +94,12 @@ export default function StakeholdersPage() {
             </Box>
 
             <TabPanel value={value} index={0}>
-                <PotentialStakeholders />
+                <PotentialStakeholders 
+                    stakeholdersList={stakeholders} 
+                    updateStakeholder={updateStakeholder} 
+                    createStakeholder={createStakeholder} 
+                    deleteStakeholder={deleteStakeholder}
+                />
             </TabPanel>
 
             <TabPanel value={value} index={1}>

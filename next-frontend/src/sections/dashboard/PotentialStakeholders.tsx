@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
@@ -8,13 +8,19 @@ import {
   Paper,
 } from '@mui/material';
 import { MdAdd as AddIcon, MdDownload as DownloadIcon } from 'react-icons/md';
-import { Stakeholder } from '@/lib/types';
+import { CreateStakeholderInput, Stakeholder, UpdateStakeholderInput } from '@/types';
 import { StakeholderList, StakeholderDialog } from '@/components';
-import { getDummyStakeholders } from '@/lib/dummyData';
 import { downloadStakeholderMappingCSV } from '@/lib/csvHandlers';
 
-export function PotentialStakeholders() {
-    const [stakeholders, setStakeholders] = useState<Stakeholder[]>(getDummyStakeholders);
+interface PotentialStakeholdersProps {
+    stakeholdersList: Stakeholder[],
+    createStakeholder: (input: CreateStakeholderInput) => Promise<Stakeholder | null>;
+    updateStakeholder: (id: string, input: UpdateStakeholderInput) => Promise<Stakeholder | null>;
+    deleteStakeholder: (id: string) => Promise<boolean>;
+}
+
+export function PotentialStakeholders({stakeholdersList, createStakeholder, updateStakeholder, deleteStakeholder}: PotentialStakeholdersProps) {
+    const [stakeholders, setStakeholders] = useState<Stakeholder[]>([]);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [currentStakeholder, setCurrentStakeholder] = useState<Stakeholder | null>(null);
 
@@ -28,9 +34,9 @@ export function PotentialStakeholders() {
         setDialogOpen(true);
     };
 
-    const handleDelete = (id: number) => {
+    const handleDelete = (id: string) => {
         if (window.confirm('Are you sure you want to delete this stakeholder?')) {
-            setStakeholders(prev => prev.filter(s => s.id !== id));
+            deleteStakeholder(id)
         }
     };
 
@@ -39,26 +45,39 @@ export function PotentialStakeholders() {
         setCurrentStakeholder(null);
     };
 
-    const handleSave = (stakeholderData: Omit<Stakeholder, 'id'>) => {
+    const handleSave = async (stakeholderData: Stakeholder) => {
+        let result;
         if (currentStakeholder) {
-            // Edit existing
-            setStakeholders(prev => 
-                prev.map(s => s.id === currentStakeholder.id 
-                    ? { ...stakeholderData, id: currentStakeholder.id }
-                    : s
-                )
-            );
+           const updateInput: UpdateStakeholderInput = {
+                name: stakeholderData.name,
+                description: stakeholderData.description || '',
+                activityId: stakeholderData.activityId
+            };
+            result = await updateStakeholder(
+                currentStakeholder.id,
+                updateInput
+            )
         } else {
-            // Add new
-            const newId = stakeholders.length ? Math.max(...stakeholders.map(s => s.id)) + 1 : 1;
-            setStakeholders(prev => [...prev, { ...stakeholderData, id: newId }]);
+            const createInput: CreateStakeholderInput = {
+                name: stakeholderData.name,
+                description: stakeholderData.description || '',
+                activityId: stakeholderData.activityId
+            };
+            result = await createStakeholder(createInput);
         }
-        handleDialogClose();
+        if(result){
+            handleDialogClose()
+        }
     };
 
     const downloadCSV = () => {
-        downloadStakeholderMappingCSV(stakeholders)
+        // downloadStakeholderMappingCSV(stakeholders)
     }
+
+    useEffect(() => {
+        setStakeholders(stakeholdersList)
+        
+    }, [stakeholdersList])
     return (
         <Box>
             <Paper sx={{ p: 4, borderRadius: 3 }}>
