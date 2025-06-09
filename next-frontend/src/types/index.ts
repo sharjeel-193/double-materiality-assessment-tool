@@ -22,3 +22,8 @@ export type {
     UpdateStakeholderInput,
     StakeholderFormData
 } from './stakeholder'
+
+export type {
+    Topic,
+    Dimension
+} from './topics'

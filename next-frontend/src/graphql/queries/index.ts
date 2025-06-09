@@ -35,3 +35,7 @@ export {
     UPDATE_STAKEHOLDER,
     DELETE_STAKEHOLDER
 } from './stakeholder'
+
+export {
+    GET_TOPICS_BY_STANDARD
+} from './topics'
