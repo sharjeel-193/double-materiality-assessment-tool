@@ -4,6 +4,10 @@ import React, { useState } from 'react';
 import { Box, Tabs, Tab, Typography } from '@mui/material';
 import { TopicRatings, TopicStandards } from '@/sections';
 import { TopicsMatrix } from '@/sections/dashboard/TopicsMatrix';
+import { useQuery } from '@apollo/client';
+import { GET_TOPICS_BY_STANDARD } from '@/graphql/queries';
+import { useReportContext } from '@/providers';
+import { Loader } from '@/components';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -46,10 +50,24 @@ const teamStakeholders = [
 
 export default function SustainabilityTopicsPage () {
     const [value, setValue] = useState(0);
+    const { currentReport } = useReportContext()
+    const {loading, error, data } = useQuery(GET_TOPICS_BY_STANDARD, {
+        variables: {
+            standardId: currentReport?.standardId
+        }
+    })
 
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
     };
+
+    if(loading){
+        return (
+            <Box>
+                <Loader variant='page' message='Loading Topics ...' />
+            </Box>
+        )
+    }
     return (
         <Box>
             <Typography
@@ -83,7 +101,10 @@ export default function SustainabilityTopicsPage () {
                 </Box>
 
                 <TabPanel value={value} index={0}>
-                    <TopicStandards />
+                    <TopicStandards topics={data.topicsByStandard} standards={[{
+                        id: 'f5c94a17-0c1a-499d-8f83-ef7e4d43e8c7',
+                        name: "SusAF"
+                    }]} />
                 </TabPanel>
 
                 <TabPanel value={value} index={1}>

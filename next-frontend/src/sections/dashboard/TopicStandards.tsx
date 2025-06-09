@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
     Paper,
     Typography,
@@ -15,54 +15,70 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    Button
+    Button,
+    Checkbox,
+    ListItemText
 } from "@mui/material";
-import standardsData from '@/data/standards.json';
 import { createCSV } from "@/lib/csvHandlers";
+import { Topic } from '@/types';
 
-type Topic = { Topic: string; Description: string, id: string };
-type DimensionName = string;
-type StandardName = string;
+export interface TopicStandardsProps {
+    topics: Topic[]; // Each topic has {id, name, description, dimension: {id, name}}
+    standards: { id: string; name: string }[]; // List of standards
+}
 
-export function TopicStandards() {
-    // standardsData = { Standards: { susaf: { Environmental: [...], Social: [...], ... } } }
-    const standards = standardsData.Standards as Record<StandardName, Record<DimensionName, Topic[]>>;
-    const availableStandards = Object.keys(standards);
+export function TopicStandards({ topics, standards }: TopicStandardsProps) {
+    // Assuming each topic.dimension.name is the dimension name,
+    // and each topic.dimension.standardId or similar is the standard id.
+    // If not, adjust accordingly.
 
-    const [selectedStandard, setSelectedStandard] = useState<StandardName>(availableStandards[0]);
-    const dimensions = Object.keys(standards[selectedStandard] || {});
-    const [filterDimension, setFilterDimension] = useState<DimensionName | 'All'>('All');
+    // Build a map of standardId to standardName for dropdown
+    const standardMap = useMemo(
+        () => Object.fromEntries(standards.map(s => [s.id, s.name])),
+        [standards]
+    );
 
-    // Flatten all topics for the selected standard into a single array with dimension info
-    const allTopics: { Dimension: string; Topic: string; Description: string, id: string }[] = useMemo(
-        () =>
-            Object.entries(standards[selectedStandard] || {}).flatMap(([dimension, topics]) =>
-                topics.map(topic => ({
-                    id: topic.id,
-                    Dimension: dimension,
-                    Topic: topic.Topic,
-                    Description: topic.Description,
-                }))
-            ),
-        [standards, selectedStandard]
+    useEffect(() => {
+        console.log({'Topics': topics})
+    }, [topics])
+
+    const [selectedStandard, setSelectedStandard] = useState<string>(standards[0]?.id || '');
+    const [filterDimension, setFilterDimension] = useState<string | 'All'>('All');
+    const [selectedDimensions, setSelectedDimensions] = useState<string[]>([]);
+
+    // Filter topics by selected standard
+
+    // Get unique dimensions for the selected standard
+    const dimensions = useMemo(
+        () => Array.from(new Set(topics.map(t => t.dimension.name))),
+        [topics]
     );
 
     // Filtered topics for table and CSV
-    const filteredTopics = filterDimension === 'All'
-        ? allTopics
-        : allTopics.filter(row => row.Dimension === filterDimension);
+    const filteredTopics = useMemo(() => {
+        if (!selectedDimensions.length) return topics;
+        return topics.filter(t => selectedDimensions.includes(t.dimension.name));
+    }, [topics, selectedDimensions]);
+
+    const groupedTopics = useMemo(() => {
+        const groups: Record<string, Topic[]> = {};
+        filteredTopics.forEach(topic => {
+            const dim = topic.dimension.name;
+            if (!groups[dim]) groups[dim] = [];
+            groups[dim].push(topic);
+        });
+        return groups;
+    }, [filteredTopics]);
 
     // Download CSV
     const handleDownloadCSV = () => {
-        const headers = ['id', 'Dimension', 'Topic', 'Description', 'Magnitude', 'Relevance'];
+        const headers = ['id', 'Dimension', 'Topic', 'Description'];
         const csvRows = filteredTopics.map((row) => [
             row.id,
-            row.Dimension,
-            row.Topic,
-            row.Description,
-            "",
-            ""
-        ])
+            row.dimension.name,
+            row.name,
+            row.description
+        ]);
         const csvContent = [
             headers.join(','),
             ...csvRows.map(row =>
@@ -72,7 +88,7 @@ export function TopicStandards() {
             )
         ].join('\n');
 
-        createCSV(csvContent, 'topics-rating-survey.csv')
+        createCSV(csvContent, 'topics-rating-survey.csv');
     };
 
     return (
@@ -87,36 +103,40 @@ export function TopicStandards() {
                         value={selectedStandard}
                         label="Select Standard"
                         onChange={e => {
-                        const std = e.target.value as StandardName;
-                        setSelectedStandard(std);
-                        setFilterDimension('All');
+                            const std = e.target.value as string;
+                            setSelectedStandard(std);
+                            setFilterDimension('All');
                         }}
                     >
-                        {availableStandards.map(standard => (
-                        <MenuItem key={standard} value={standard}>
-                            {standard}
-                        </MenuItem>
+                        {standards.map(standard => (
+                            <MenuItem key={standard.id} value={standard.id}>
+                                {standard.name}
+                            </MenuItem>
                         ))}
                     </Select>
                 </FormControl>
                 <FormControl sx={{ minWidth: 180 }}>
                     <InputLabel>Filter by Dimension</InputLabel>
                     <Select
-                        value={filterDimension}
+                        multiple
+                        value={selectedDimensions}
+                        onChange={e => setSelectedDimensions(typeof e.target.value === 'string'
+                            ? e.target.value.split(',')
+                            : e.target.value)}
+                        renderValue={(selected) => (selected as string[]).join(', ') || 'All'}
                         label="Filter by Dimension"
-                        onChange={e => setFilterDimension(e.target.value as DimensionName | 'All')}
                     >
-                        <MenuItem value="All">All</MenuItem>
                         {dimensions.map(dim => (
                             <MenuItem key={dim} value={dim}>
-                                {dim}
+                                <Checkbox checked={selectedDimensions.indexOf(dim) > -1} />
+                                <ListItemText primary={dim} />
                             </MenuItem>
                         ))}
                     </Select>
                 </FormControl>
             </Box>
             <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                Topics in <b>{selectedStandard}</b>
+                Topics in <b>{standardMap[selectedStandard]}</b>
                 {filterDimension !== 'All' && <> / <b>{filterDimension}</b></>}
             </Typography>
             <TableContainer>
@@ -133,39 +153,26 @@ export function TopicStandards() {
                             <TableRow>
                                 <TableCell colSpan={3} align="center">
                                     <Typography variant="body2" color="text.secondary">
-                                            No topics found for this selection.
+                                        No topics found for this selection.
                                     </Typography>
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            (() => {
-                                const rowsWithRowSpan: Array<{ row: typeof filteredTopics[0]; rowSpan?: number; showDimension: boolean }> = [];
-                                let lastDimension = '';
-                                filteredTopics.forEach((row) => {
-                                    if (row.Dimension !== lastDimension) {
-                                        // Count how many rows have this dimension
-                                        const rowSpan = filteredTopics.filter(r => r.Dimension === row.Dimension).length;
-                                        rowsWithRowSpan.push({ row, rowSpan, showDimension: true });
-                                        lastDimension = row.Dimension;
-                                    } else {
-                                        rowsWithRowSpan.push({ row, showDimension: false });
-                                    }
-                                })
-                            return rowsWithRowSpan.map(({ row, rowSpan, showDimension }, idx) => (
-                                <TableRow key={row.Dimension + row.Topic + idx}>
-                                    {showDimension ? (
-                                        <TableCell rowSpan={rowSpan}>
-                                            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                                                {row.Dimension}
-                                            </Typography>
-                                        </TableCell>
-                                    ) : null}
-                                    <TableCell>{row.Topic}</TableCell>
-                                    <TableCell>{row.Description}</TableCell>
-                                </TableRow>
-                            ));
-                            })()
-                            
+                            Object.entries(groupedTopics).map(([dimensionName, topicsInDim]) =>
+                                topicsInDim.map((topic, idx) => (
+                                    <TableRow key={topic.id}>
+                                        {idx === 0 && (
+                                            <TableCell rowSpan={topicsInDim.length}>
+                                                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                                    {dimensionName}
+                                                </Typography>
+                                            </TableCell>
+                                        )}
+                                        <TableCell>{topic.name}</TableCell>
+                                        <TableCell>{topic.description}</TableCell>
+                                    </TableRow>
+                                ))
+                            )
                         )}
                     </TableBody>
                 </Table>
