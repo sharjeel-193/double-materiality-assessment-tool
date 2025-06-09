@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
     Box,
     Typography,
@@ -12,17 +12,21 @@ import {
     TableHead,
     TableRow,
     Paper,
+    Chip,
 } from '@mui/material';
 import { MdEdit as EditIcon, MdDelete as DeleteIcon } from 'react-icons/md';
-import { Stakeholder } from '@/lib/types';
+import { Stakeholder } from '@/types';
 
 export interface StakeholderListProps {
     stakeholders: Stakeholder[];
     onEdit: (stakeholder: Stakeholder) => void;
-    onDelete: (id: number) => void;
+    onDelete: (id: string) => void;
 }
 
 export function StakeholderList({ stakeholders, onEdit, onDelete }: StakeholderListProps) {
+    useEffect(() => {
+        console.log({'In List': stakeholders})
+    }, [stakeholders])
     if (stakeholders.length === 0) {
         return (
             <Box
@@ -65,7 +69,7 @@ export function StakeholderList({ stakeholders, onEdit, onDelete }: StakeholderL
                             Name
                         </TableCell>
                         <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
-                            Contact
+                            Activity
                         </TableCell>
                         <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
                             Description
@@ -98,9 +102,16 @@ export function StakeholderList({ stakeholders, onEdit, onDelete }: StakeholderL
                             </TableCell>
                             
                             <TableCell>
-                                <Typography variant="body2" color="text.secondary">
-                                    {stakeholder.contact}
-                                </Typography>
+                                <Box>
+                                    <Typography variant="body2" color="text.secondary">
+                                        {stakeholder.activity.name}
+                                    </Typography>
+                                    <Chip 
+                                        size='small'  
+                                        label={stakeholder.activity.type} 
+                                        color={stakeholder.activity.type === 'DOWNSTREAM' ? 'primary' : 'secondary'}
+                                    />
+                                </Box>
                             </TableCell>
                             
                             <TableCell sx={{ maxWidth: 300 }}>

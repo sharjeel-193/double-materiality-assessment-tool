@@ -12,12 +12,13 @@ import {
 interface UseActivityReturn {
     // Data
     activities: Activity[];
+    activityLabels: ActivityLabel[];
     loading: boolean;
     error: string | null;
     
     // Actions
     getActivitiesByContext: (contextId: string) => Promise<Activity[]>;
-    getActivityLabels: (contextId: string) => ActivityLabel[];
+    getActivityLabels: (contextId: string) => Promise<ActivityLabel[]>;
     getActivitiesByType: (type: ActivityType) => Activity[];
     getActivity: (id: string) => Promise<Activity | null>;
     createActivity: (input: CreateActivityInput) => Promise<Activity | null>;
@@ -29,6 +30,7 @@ interface UseActivityReturn {
 
 export function useActivity(): UseActivityReturn {
     const [activities, setActivities] = useState<Activity[]>([]);
+    const [activityLabels, setAcitivityLabels] = useState<ActivityLabel[]>([])
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     
@@ -68,18 +70,19 @@ export function useActivity(): UseActivityReturn {
         }
     }, [client, handleError]);
 
-    const getActivityLabels = (constextId: string): ActivityLabel[] => {
+    const getActivityLabels = useCallback(async (constextId: string): Promise<ActivityLabel[]> => {
         if(!activities){
-            getActivitiesByContext(constextId)
+            await getActivitiesByContext(constextId)
         }
-        const activityLabels = activities.map((activity) => ({
+        const activityLabelsList = activities.map((activity) => ({
             id: activity.id,
             name: activity.name,
             type: activity.type
         }))
+        setAcitivityLabels(activityLabelsList)
 
         return activityLabels
-    }
+    }, [activities, activityLabels, getActivitiesByContext])
 
     const getActivitiesByType = useCallback((type: ActivityType): Activity[] => {
         try {
@@ -198,6 +201,8 @@ export function useActivity(): UseActivityReturn {
         activities,
         loading,
         error,
+        activityLabels,
+        
         getActivitiesByContext,
         getActivityLabels,
         getActivitiesByType,

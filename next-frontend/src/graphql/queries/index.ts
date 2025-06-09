@@ -28,3 +28,10 @@ export {
     DELETE_ACTIVITY,
     GET_ACTIVITIES_LABELS,
 } from './activity'
+
+export {
+    GET_STAKEHOLDERS_BY_REPORT,
+    CREATE_STAKEHOLDER,
+    UPDATE_STAKEHOLDER,
+    DELETE_STAKEHOLDER
+} from './stakeholder'

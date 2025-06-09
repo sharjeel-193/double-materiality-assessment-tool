@@ -15,3 +15,10 @@ export type {
     ActivityType,
     ActivityLabel
 } from './activity'
+
+export type {
+    Stakeholder,
+    CreateStakeholderInput,
+    UpdateStakeholderInput,
+    StakeholderFormData
+} from './stakeholder'
