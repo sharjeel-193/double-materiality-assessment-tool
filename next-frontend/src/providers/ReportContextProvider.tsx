@@ -5,6 +5,7 @@ import { createContext, useContext, useState, useEffect, ReactNode, useCallback,
 import { useApolloClient } from '@apollo/client';
 import { useCompanyContext } from '@/providers';
 import { GET_REPORT_BY_YEAR, CREATE_REPORT } from '@/graphql/queries';
+import { Context } from '@/types';
 
 interface Report {
     id: string;
@@ -17,6 +18,7 @@ interface Report {
     materialImpacts: number;
     createdAt: string;
     updatedAt: string;
+    context: Context
 }
 
 interface ReportContextType {
@@ -50,14 +52,15 @@ export function ReportContextProvider({ children }: { children: ReactNode }) {
 
             try {
                 setLoading(true);
-                const { data } = await client.query({
+                const result = await client.query({
                     query: GET_REPORT_BY_YEAR,
                     variables: { 
                         companyId: company.id, 
                         year: year 
-                    },
-                    fetchPolicy: 'cache-first'
+                    }
                 });
+                const {data} = result
+                console.log({Data: result})
 
                 if (data?.reportByYear) {
                     setCurrentReport(data.reportByYear);
