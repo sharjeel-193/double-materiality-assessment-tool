@@ -65,6 +65,10 @@ export function RatingsTableView({
         }
     }, [allColumns, sortField]);
 
+    React.useEffect(() => {
+        console.log(data)
+    }, [data])
+
     // Data to display (filtered, searched, sorted)
     const filteredRows = useMemo(() => {
         let rows = (data[filterUploader] || []) as TableData[];
