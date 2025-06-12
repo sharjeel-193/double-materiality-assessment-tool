@@ -19,7 +19,7 @@ interface useStakeholderReturn {
 
 export function useStakeholder (): useStakeholderReturn {
     const [stakeholders, setStakeholders] = useState<Stakeholder[]>([]);
-    const [stakeholderLoading, setStakeholderLoading] = useState<boolean>(false);
+    const [stakeholderLoading, setStakeholderLoading] = useState<boolean>(true);
     const [stakeholderError, setStakeholderError] = useState<string | null>(null);
     const [stakeholderMessage, setStakeholderMessage] = useState<string | null>(null)
 
@@ -107,7 +107,8 @@ export function useStakeholder (): useStakeholderReturn {
                 query: GET_STAKEHOLDERS_BY_REPORT,
                 variables:{
                     reportId: reportId
-                }
+                },
+                fetchPolicy: 'no-cache'
             })
             const { data, success, message } = response.data.stakeholdersByReport
             console.log(response)
@@ -120,6 +121,7 @@ export function useStakeholder (): useStakeholderReturn {
             console.log("Fetching Stakeholder Error: ", error)
             handleError("Failed to fetch the Stakeholders")
         } finally {
+            console.log("Stakeholder Lading False")
             setStakeholderLoading(false)
         }
     }, [client, handleError, handleMessage])

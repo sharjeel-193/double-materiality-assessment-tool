@@ -27,3 +27,15 @@ export type {
     Topic,
     Dimension
 } from './topics'
+
+export type {
+    User
+} from './user'
+
+export type {
+    UserSubmission,
+    StakeholderRating,
+    CreateStakeholderRatingInput,
+    CreateUserSubmissionInput,
+    SubmissionType
+} from './submission'

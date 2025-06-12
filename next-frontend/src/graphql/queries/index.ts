@@ -39,3 +39,10 @@ export {
 export {
     GET_TOPICS_BY_STANDARD
 } from './topics'
+
+export {
+    CREATE_USER_SUBMISSION,
+    DELETE_USER_SUBMISSION,
+    GET_USER_SUBMISSIONS_BY_REPORT,
+    GET_USERS_BY_COMPANY
+} from './submission'
