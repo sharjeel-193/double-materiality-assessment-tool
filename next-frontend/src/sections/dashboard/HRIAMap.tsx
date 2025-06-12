@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useState, useMemo } from 'react';
 import {
     Box,
@@ -12,24 +12,37 @@ import {
     IconButton,
 } from '@mui/material';
 import { MdClear as ClearIcon } from 'react-icons/md';
-import { StakeholderRating, AnalystSubmission } from '@/lib/types';
+import { StakeholderRating, UserSubmissionGroupedData } from '@/types';
 import { MatrixMap } from '@/components';
 import { MatrixMapDatum } from '@/components/dashboard/MatrixMap';
 
 interface HRIAMapProps {
-    ratings: AnalystSubmission;
+    ratings: UserSubmissionGroupedData;
 }
 
 export function HRIAMap({ ratings }: HRIAMapProps) {
+    // Get all analyst submission IDs (excluding 'Average')
+    const analystSubmissionIds = Object.keys(ratings).filter(id => id !== 'Average');
+    // Build a map of submissionId to userName for display
+    const submissionIdToUserName: Record<string, string> = useMemo(() => {
+        const map: Record<string, string> = {};
+        analystSubmissionIds.forEach(id => {
+            map[id] = ratings[id].userName;
+        });
+        return map;
+    }, [ratings, analystSubmissionIds]);
 
-    const [selectedAnalyst, setSelectedAnalyst] = useState<string>('Average');
-    const analysts = Object.keys(ratings).filter(name => name !== 'Average');
+    // Default to 'Average' if present, otherwise first analyst
+    const [selectedAnalyst, setSelectedAnalyst] = useState<string>(
+        ratings['Average'] ? 'Average' : analystSubmissionIds[0] || ''
+    );
 
+    // Data to display: average or selected analyst's ratings
     const getDataToDisplay = (): StakeholderRating[] => {
         if (selectedAnalyst === 'Average') {
-            return ratings['Average'] || [];
+            return ratings['Average']?.stakeholderRatings || [];
         } else {
-            return ratings[selectedAnalyst] || [];
+            return ratings[selectedAnalyst]?.stakeholderRatings || [];
         }
     };
 
@@ -39,7 +52,6 @@ export function HRIAMap({ ratings }: HRIAMapProps) {
     const scatterData = useMemo(() => {
         if (stakeholderData.length === 0) return [];
 
-        // Group stakeholders by quadrant for different series
         const highInfluenceHighImpact = stakeholderData.filter(s => s.influence >= 3 && s.impact >= 3);
         const highInfluenceLowImpact = stakeholderData.filter(s => s.influence >= 3 && s.impact < 3);
         const lowInfluenceHighImpact = stakeholderData.filter(s => s.influence < 3 && s.impact >= 3);
@@ -56,7 +68,7 @@ export function HRIAMap({ ratings }: HRIAMapProps) {
                 data: highInfluenceHighImpact.map(s => ({
                     x: s.impact,
                     y: s.influence,
-                    stakeholder: s.name
+                    label: s.stakeholder?.name || s.stakeholderId
                 }))
             });
         }
@@ -67,7 +79,7 @@ export function HRIAMap({ ratings }: HRIAMapProps) {
                 data: highInfluenceLowImpact.map(s => ({
                     x: s.impact,
                     y: s.influence,
-                    stakeholder: s.name
+                    label: s.stakeholder?.name || s.stakeholderId
                 }))
             });
         }
@@ -78,7 +90,7 @@ export function HRIAMap({ ratings }: HRIAMapProps) {
                 data: lowInfluenceHighImpact.map(s => ({
                     x: s.impact,
                     y: s.influence,
-                    stakeholder: s.name
+                    label: s.stakeholder?.name || s.stakeholderId
                 }))
             });
         }
@@ -89,7 +101,7 @@ export function HRIAMap({ ratings }: HRIAMapProps) {
                 data: lowInfluenceLowImpact.map(s => ({
                     x: s.impact,
                     y: s.influence,
-                    stakeholder: s.name
+                    label: s.stakeholder?.name || s.stakeholderId
                 }))
             });
         }
@@ -111,15 +123,17 @@ export function HRIAMap({ ratings }: HRIAMapProps) {
                         onChange={(e) => setSelectedAnalyst(e.target.value)}
                         label="Select Data Source"
                     >
-                        <MenuItem value="Average">
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Chip label="AVG" size="small" color="primary" />
-                                Average Ratings
-                            </Box>
-                        </MenuItem>
-                        {analysts.map(analyst => (
-                            <MenuItem key={analyst} value={analyst}>
-                                {analyst}
+                        {'Average' in ratings && (
+                            <MenuItem value="Average">
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <Chip label="AVG" size="small" color="primary" />
+                                    Average Ratings
+                                </Box>
+                            </MenuItem>
+                        )}
+                        {analystSubmissionIds.map(submissionId => (
+                            <MenuItem key={submissionId} value={submissionId}>
+                                {submissionIdToUserName[submissionId]}
                             </MenuItem>
                         ))}
                     </Select>
@@ -129,6 +143,7 @@ export function HRIAMap({ ratings }: HRIAMapProps) {
                         size="small"
                         onClick={() => setSelectedAnalyst('Average')}
                         sx={{ bgcolor: 'action.hover' }}
+                        disabled={!('Average' in ratings)}
                     >
                         <ClearIcon />
                     </IconButton>
@@ -157,16 +172,15 @@ export function HRIAMap({ ratings }: HRIAMapProps) {
                         <Typography variant="body2" color="text.secondary">
                             {selectedAnalyst === 'Average'
                                 ? 'No analyst submissions found to generate HRIA map'
-                                : `No data found for ${selectedAnalyst}`
-                            }
+                                : `No data found for ${submissionIdToUserName[selectedAnalyst] || selectedAnalyst}`}
                         </Typography>
                     </Box>
                 </Box>
             ) : (
                 <MatrixMap
                     data={scatterData}
-                    xLabel="Impact →"
-                    yLabel="← Influence"
+                    xLabel="Impact"
+                    yLabel="Influence"
                     colorScheme="category10"
                     legendTitle="Stakeholders"
                     height={500}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Tabs, Tab, Typography } from '@mui/material';
 import { TopicRatings, TopicStandards } from '@/sections';
 import { TopicsMatrix } from '@/sections/dashboard/TopicsMatrix';
@@ -8,6 +8,8 @@ import { useQuery } from '@apollo/client';
 import { GET_TOPICS_BY_STANDARD } from '@/graphql/queries';
 import { useReportContext } from '@/providers';
 import { Loader } from '@/components';
+import { useStakeholderSubmission } from '@/hooks/useStakeholderSubmission';
+import { CreateStakeholderSubmissionInput } from '@/types';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -40,14 +42,6 @@ function a11yProps(index: number) {
     };
 }
 
-const teamStakeholders = [
-    'John Smith',
-    'Sarah Johnson',
-    'Michael Chen',
-    'Emily Davis',
-    'David Wilson'
-];
-
 export default function SustainabilityTopicsPage () {
     const [value, setValue] = useState(0);
     const { currentReport } = useReportContext()
@@ -57,14 +51,51 @@ export default function SustainabilityTopicsPage () {
         }
     })
 
+    const {
+            stakeholderFinancialSubmissions,
+            stakeholderImpactSubmissions,
+            stakeholderSubmissionLoading,
+            financialStakeholders,
+            impactStakeholders,
+            fetchStakeholderSubmissionsByReportAndType,
+            fetchStakeholdersByReport,
+            createStakeholderSubmission,
+            deleteStakeholderSubmission
+        } = useStakeholderSubmission()
+
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
     };
+
+    const handleCreateStakeholderSubmission = async (input: CreateStakeholderSubmissionInput) => {
+        await createStakeholderSubmission(input)
+    }
+
+    const handleDeleteStakeholderSubmission = async (id: string) => {
+        await deleteStakeholderSubmission(id)
+    }
+
+
+    useEffect(() => {
+        if(currentReport?.id){
+            console.log("HERE FETCHING STAKEHOLDERS AND SUBMISSIONS")
+            fetchStakeholdersByReport(currentReport.id)
+            fetchStakeholderSubmissionsByReportAndType(currentReport.id, 'FINANCIAL')
+            fetchStakeholderSubmissionsByReportAndType(currentReport.id, 'IMPACT')
+        }
+    }, [currentReport?.id, fetchStakeholderSubmissionsByReportAndType, fetchStakeholdersByReport])
 
     if(loading){
         return (
             <Box>
                 <Loader variant='page' message='Loading Topics ...' />
+            </Box>
+        )
+    }
+    if(error){
+        return (
+            <Box>
+                <Typography color='error'>Sorry, we ran into some error, plaease try again ...</Typography>
             </Box>
         )
     }
@@ -108,11 +139,27 @@ export default function SustainabilityTopicsPage () {
                 </TabPanel>
 
                 <TabPanel value={value} index={1}>
-                    <TopicRatings stakeholders={teamStakeholders} ratingsType={'Impact'} />
+                    <TopicRatings 
+                        stakeholders={impactStakeholders}
+                        stakeholderSubmissionsGrouped={stakeholderImpactSubmissions}
+                        createStakeholderSubmission={handleCreateStakeholderSubmission}
+                        deleteStakeholderSubmission={handleDeleteStakeholderSubmission}
+                        loading={stakeholderSubmissionLoading}
+                        report={currentReport!.id}
+                        ratingsType={'IMPACT'}
+                    />
                 </TabPanel>
 
                 <TabPanel value={value} index={2}>
-                    <TopicRatings stakeholders={teamStakeholders} ratingsType={'Financial'} />
+                    <TopicRatings 
+                        stakeholders={financialStakeholders}
+                        stakeholderSubmissionsGrouped={stakeholderFinancialSubmissions}
+                        createStakeholderSubmission={handleCreateStakeholderSubmission}
+                        deleteStakeholderSubmission={handleDeleteStakeholderSubmission}
+                        loading={stakeholderSubmissionLoading}
+                        report={currentReport!.id}
+                        ratingsType={'FINANCIAL'}
+                    />
                 </TabPanel>
 
                 <TabPanel value={value} index={3}>
