@@ -1,196 +1,138 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
-import { RatingsTableView, UploaderSubmissions } from '@/components';
-import { CSVColumn, TopicRating } from '@/lib/types';
+import { Loader, RatingsTableView, UploaderSubmissions } from '@/components';
+import { CSVColumn } from '@/lib/types';
+import { CreateStakeholderSubmissionInput, StakeholderSubmissionGroupedData, TopicRatingType } from '@/types';
+import { CreateTopicRatingInput } from '@/types/submission';
 
-const teamStakeholders = [
-    'John Smith',
-    'Sarah Johnson',
-    'Michael Chen',
-    'Emily Davis',
-    'David Wilson'
-];
+interface TopicRatingsProps {
+    stakeholders: { id: string; name: string }[];
+    stakeholderSubmissionsGrouped: StakeholderSubmissionGroupedData;
+    loading: boolean;
+    report: string;
+    createStakeholderSubmission: (input: CreateStakeholderSubmissionInput) => Promise<void>;
+    deleteStakeholderSubmission: (id: string) => Promise<void>;
+    ratingsType: TopicRatingType;
+}
 
-// CSV structure for StakeholderRating
 const csvStructure: CSVColumn[] = [
     { label: 'id', dataType: 'string' },
     { label: 'Topic', dataType: 'string' },
-    { label: 'Description', dataType: 'string' },
     { label: 'Dimension', dataType: 'string' },
     { label: 'Relevance', dataType: 'float' },
     { label: 'Magnitude', dataType: 'float' }
 ];
 
-interface TopicRatingsProps {
-    stakeholders: string[],
-    ratingsType: string
-}
-
-export function TopicRatings({stakeholders, ratingsType}: TopicRatingsProps) {
-    // Universal format: uploader name -> array of CSV row objects
+export function TopicRatings({
+    stakeholders,
+    stakeholderSubmissionsGrouped,
+    loading,
+    createStakeholderSubmission,
+    deleteStakeholderSubmission,
+    report,
+    ratingsType
+}: TopicRatingsProps) {
     const [submissions, setSubmissions] = useState<Record<string, Record<string, string | number>[]>>({});
-    const [pendingStakeholders, setPendingStakeholders] = useState<string[]>(stakeholders);
-    const [submittedStakeholders, setSubmittedStakeholders] = useState<string[]>([]);
+    const [submissionMap, setSubmissionMap] = useState<Record<string, string>>({});
 
-    const updateAverages = (submissionsData: Record<string, Record<string, string | number>[]>) => {
-    // Filter out the 'Average' key to get only Stakeholder data
-    const topicData = Object.fromEntries(
-        Object.entries(submissionsData).filter(([key]) => key !== 'Average')
-    );
+    // Process the grouped data structure
+    useEffect(() => {
+        const mapped: Record<string, Record<string, string | number>[]> = {};
+        const stakeholderSubmissionMap: Record<string, string> = {};
 
-    if (Object.keys(topicData).length === 0) {
-        setSubmissions(prev => {
-            const newSubmissions = { ...prev };
-            delete newSubmissions['Average'];
-            return newSubmissions;
-        });
-        return;
-    }
+        Object.entries(stakeholderSubmissionsGrouped).forEach(([submissionId, submissionData]) => {
+            const name = submissionData.stakeholderName;
+            const stakeholderId = submissionData.stakeholderId;
 
-    // Use topic id as the key (string)
-    const topicMap = new Map<string, {
-        id: string;
-        topic: string;
-        dimension: string;
-        magnitudeSum: number;
-        relevanceSum: number;
-        count: number;
-    }>();
+            mapped[name] = Array.isArray(submissionData.topicRatings)
+                ? submissionData.topicRatings.map(r => ({
+                    name: r.topic?.name || '',
+                    dimension: r.topic?.dimension?.name || '',
+                    magnitude: r.magnitude,
+                    relevance: r.relevance ,
+                    score: r.score || (r.magnitude + r.relevance) / 2
+                }))
+                : [];
 
-    Object.values(topicData).forEach(topicRatings => {
-        topicRatings.forEach(rating => {
-            const id = String(rating['id']);
-            const topic = String(rating['Topic']);
-            const dimension = String(rating['Dimension']);
-            const magnitude = Number(rating['Magnitude']);
-            const relevance = Number(rating['Relevance']);
-            const existing = topicMap.get(id);
-            if (existing) {
-                existing.magnitudeSum += magnitude;
-                existing.relevanceSum += relevance;
-                existing.count += 1;
-            } else {
-                topicMap.set(id, {
-                    id,
-                    topic,
-                    dimension,
-                    magnitudeSum: magnitude,
-                    relevanceSum: relevance,
-                    count: 1,
-                });
+            if (submissionId !== 'Average' && stakeholderId) {
+                stakeholderSubmissionMap[stakeholderId] = submissionId;
             }
         });
-    });
 
-    // Calculate averages as TopicRating[]
-    const averages: TopicRating[] = Array.from(topicMap.values()).map(topic => {
-        const avgMagnitude = Math.round((topic.magnitudeSum / topic.count) * 100) / 100;
-        const avgRelevance = Math.round((topic.relevanceSum / topic.count) * 100) / 100;
-        const avgScore = Math.round(((avgMagnitude + avgRelevance) / 2) * 100) / 100;
-        return {
-            id: topic.id,
-            topic: topic.topic,
-            dimension: topic.dimension,
-            magnitude: avgMagnitude,
-            relevance: avgRelevance,
-            score: avgScore
+        setSubmissions(mapped);
+        setSubmissionMap(stakeholderSubmissionMap);
+    }, [stakeholderSubmissionsGrouped]);
+
+    // Upload handler
+    const handleUploadRatings = async (stakeholderId: string, newRatings: Record<string, string | number>[]) => {
+        // Map CSV row to TopicRating[]
+        const topicRatings: CreateTopicRatingInput[] = newRatings.map(row => ({
+            topicId: String(row['id']),
+            magnitude: Number(row['Magnitude']),
+            relevance: Number(row['Relevance']),
+            ratingType: ratingsType
+        }));
+
+        // Prepare input for backend (adjust as needed for your API)
+        const submissionInput: CreateStakeholderSubmissionInput = {
+            stakeholderId,
+            reportId: report,
+            topicRatings,
+            type: 'STAKEHOLDER',
         };
-    });
 
-    setSubmissions(prev => ({
-        ...prev,
-        'Average': averages.map(avg => ({
-            id: avg.id,
-            Topic: avg.topic,
-            Dimension: avg.dimension,
-            Magnitude: avg.magnitude,
-            Relevance: avg.relevance,
-            Score: avg.score
-        }))
-    }));
-};
+        await createStakeholderSubmission(submissionInput);
+    };
 
-
-
-    // Handle upload: store as universal format and update averages
-    const handleUploadRatings = (StakeholderName: string, newRatings: Record<string, string | number>[]) => {
-        const ratingsWithScore = newRatings.map(row => {
-            const magnitude = Number(row['Magnitude']);
-            const relevance = Number(row['Relevance']);
-            return {
-                ...row,
-                Score: Math.round(((magnitude + relevance) / 2) * 100) / 100
-            };
-        });
-
-        const updatedSubmissions = {
-            ...submissions,
-            [StakeholderName]: ratingsWithScore
-        };
-        setSubmissions(updatedSubmissions);
-        // console.log(updatedSubmissions)
-        updateAverages(updatedSubmissions);
-
-        if (pendingStakeholders.includes(StakeholderName)) {
-            setPendingStakeholders(prev => prev.filter(name => name !== StakeholderName));
-            setSubmittedStakeholders(prev => [...prev, StakeholderName]);
+    // Remove handler
+    const handleRemoveStakeholderData = async (stakeholderId: string) => {
+        const submissionId = submissionMap[stakeholderId];
+        if (submissionId) {
+            await deleteStakeholderSubmission(submissionId);
         }
     };
 
-    // Handle removal and update averages
-    const handleRemoveStakeholderData = (StakeholderName: string) => {
-        const updatedSubmissions = { ...submissions };
-        delete updatedSubmissions[StakeholderName];
-        delete updatedSubmissions['Average'];
-        setSubmissions(updatedSubmissions);
-        updateAverages(updatedSubmissions);
-        setSubmittedStakeholders(prev => prev.filter(name => name !== StakeholderName));
-        setPendingStakeholders(prev => [...prev, StakeholderName]);
-    };
-
+    // Prepare table data (no Description)
     const getTableDataWithoutDescription = (): Record<string, Record<string, string | number>[]> => {
         const result: Record<string, Record<string, string | number>[]> = {};
         Object.entries(submissions).forEach(([uploader, rows]) => {
-            result[uploader] = rows.map(row => {
-                // const { Description, ...rest } = row;
-                const newRow = {
-
-                    Dimension: row['Dimension'],
-                    Topic: row['Topic'],
-                    Magnitude: row['Magnitude'],
-                    Relevance: row['Relevance'],
-                    Score: row['Score']
-                }
-                return newRow;
-            });
+            result[uploader] = rows.map(row => ({
+                Topic: row['name'],
+                Magnitude: row['magnitude'],
+                Relevance: row['relevance'],
+                Score: row['score']
+            }));
         });
         return result;
     };
 
-
     return (
         <Box>
-            <UploaderSubmissions
-                csvStructure={csvStructure}
-                teamUploaders={teamStakeholders}
-                submissions={submissions}
-                pendingUploaders={pendingStakeholders}
-                submittedUploaders={submittedStakeholders}
-                onUploadData={handleUploadRatings}
-                onRemoveUploaderData={handleRemoveStakeholderData}
-                title={`${ratingsType} Topic Ratings Submissions`}
-                description="Select an Stakeholder and upload their CSV file with stakeholder ratings."
-                allSuccessMessage="🎉 All team Stakeholders have submitted their ratings!"
-            />
-            <RatingsTableView 
-                data={getTableDataWithoutDescription()} 
-                uploaderLabel='Stakeholders' 
-                showAverage={true} 
-                title="Topics Ratings Table" 
-            />
-            {/* <StakeholderRatingsView ratings={getRatingsForView()} /> */}
+            {loading ? (
+                <Loader />
+            ) : (
+                <>
+                    <UploaderSubmissions
+                        csvStructure={csvStructure}
+                        teamUploaders={stakeholders}
+                        submissions={submissions}
+                        submissionMap={submissionMap}
+                        onUploadData={handleUploadRatings}
+                        onRemoveUploaderData={handleRemoveStakeholderData}
+                        title={`${ratingsType} Topic Ratings Submissions`}
+                        description="Select a stakeholder and upload their CSV file with topic ratings."
+                        allSuccessMessage="🎉 All stakeholders have submitted their topic ratings!"
+                    />
+                    <RatingsTableView
+                        data={getTableDataWithoutDescription()}
+                        uploaderLabel='Stakeholder'
+                        showAverage={true}
+                        title="Topic Ratings Table"
+                    />
+                </>
+            )}
         </Box>
     );
 }

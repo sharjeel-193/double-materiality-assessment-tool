@@ -72,12 +72,14 @@ export function TopicStandards({ topics, standards }: TopicStandardsProps) {
 
     // Download CSV
     const handleDownloadCSV = () => {
-        const headers = ['id', 'Dimension', 'Topic', 'Description'];
+        const headers = ['id', 'Dimension', 'Topic',  'Relevance', 'Magnitude'];
         const csvRows = filteredTopics.map((row) => [
             row.id,
             row.dimension.name,
             row.name,
-            row.description
+            '',
+            ''
+
         ]);
         const csvContent = [
             headers.join(','),

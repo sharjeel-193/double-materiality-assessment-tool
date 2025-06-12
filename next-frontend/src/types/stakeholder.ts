@@ -8,6 +8,8 @@ export interface Stakeholder {
     activity?: Activity
     createdAt?: string;
     updatedAt?: string;
+    avgImpact?: number;
+    avgInfluence?: number;
 }
 
 export interface CreateStakeholderInput {

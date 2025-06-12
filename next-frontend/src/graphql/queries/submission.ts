@@ -83,3 +83,92 @@ export const GET_USERS_BY_COMPANY = gql`
         }
     }
 `
+
+// Add this to your GraphQL queries file
+export const GET_USER_SUBMISSIONS_GROUPED_BY_REPORT = gql`
+    query UserSubmissionsByReportGrouped($reportId: String!) {
+        userSubmissionsByReportGrouped(reportId: $reportId) {
+            success
+            message
+            data
+        }
+    }
+`;
+
+export const CREATE_STAKEHOLDER_SUBMISSION = gql`
+    mutation CreateStakeholderSubmission($createStakeholderSubmissionInput: CreateStakeholderSubmissionInput!) {
+        createStakeholderSubmission(createStakeholderSubmissionInput: $createStakeholderSubmissionInput) {
+            success
+            message
+            data{
+                id
+                reportId
+                stakeholder {
+                    id
+                    name
+                }
+                topicRatings {
+                    id
+                    topic {
+                        id
+                        name
+                    }
+                    ratingType
+                    relevance
+                    magnitude
+                    score
+                }
+            }
+        } 
+    }
+`;
+
+export const DELETE_STAKEHOLDER_SUBMISSION = gql`
+    mutation DeleteStakeholderSubmission($id: String!) {
+        removeStakeholderSubmission(id: $id) {
+            data {
+                topicRatings {
+                    ratingType
+                }
+            }
+            success
+            message
+        }
+    }
+`;
+
+export const GET_STAKEHOLDER_SUBMISSIONS_GROUPED_BY_REPORT = gql`
+    query StakeholderSubmissionsByReportGrouped($reportId: String!) {
+        stakeholderSubmissionsByReportGrouped(reportId: $reportId) {
+            success
+            message
+            data
+        }
+    }
+`;
+
+export const GET_STAKEHOLDER_SUBMISSIONS_GROUPED_BY_REPORT_ANT_TYPE = gql`
+    query StakeholderSubmissionsByReportAndRatingTypeGroupedGrouped($reportId: String!, $ratingType: TopicRatingType!) {
+        stakeholderSubmissionsByReportAndRatingTypeGrouped(reportId: $reportId, ratingType: $ratingType) {
+            success
+            message
+            data
+        }
+    }
+`;
+
+export const GET_STAKEHOLDERS_BY_REPORT_FOR_SUBMISSIONS = gql`
+    query FetchStakeholdersByReport($reportId: String!){
+        stakeholdersByReport(reportId: $reportId){
+            success
+            message
+            data {
+                id
+                name
+                avgImpact
+                avgInfluence
+            }
+        }
+    }
+`
+

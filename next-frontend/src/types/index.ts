@@ -37,5 +37,11 @@ export type {
     StakeholderRating,
     CreateStakeholderRatingInput,
     CreateUserSubmissionInput,
-    SubmissionType
+    SubmissionType,
+    UserSubmissionGroupedData,
+    StakeholderSubmissionGroupedData,
+    CreateStakeholderSubmissionInput,
+    TopicRating,
+    StakeholderSubmission,
+    TopicRatingType
 } from './submission'

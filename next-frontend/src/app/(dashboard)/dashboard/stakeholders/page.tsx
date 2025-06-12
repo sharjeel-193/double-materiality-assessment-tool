@@ -51,7 +51,7 @@ export default function StakeholdersPage() {
     } = useStakeholder()
 
     const {
-        userSubmissions,
+        userSubmissionsGrouped,
         userSubmissionLoading,
         users,
         fetchUserSubmissionsByReport,
@@ -85,7 +85,6 @@ export default function StakeholdersPage() {
             fetchUsersByCompany(currentReport.companyId)
             fetchUserSubmissionsByReport(currentReport.id)
         }
-        console.log({SUB: userSubmissions})
     }, [currentReport?.companyId, currentReport?.id, fetchUserSubmissionsByReport, fetchUsersByCompany])
 
     return (
@@ -133,7 +132,7 @@ export default function StakeholdersPage() {
             <TabPanel value={value} index={1}>
                 <StakeholderRatings 
                     users={users} 
-                    userSubmissions={userSubmissions} 
+                    userSubmissionsGrouped={userSubmissionsGrouped} 
                     loading={userSubmissionLoading}
                     report={currentReport!.id}
                     createUserSubmission={handleCreateUserSubmission}
@@ -142,20 +141,7 @@ export default function StakeholdersPage() {
             </TabPanel>
 
             <TabPanel value={value} index={2}>
-                <HRIAMap ratings={{
-                    'Average': [
-                        {id:1, name: 'HY', influence: 4, impact: 5},
-                        {id:2, name: 'HY', influence: 3, impact: 3},
-                        {id:3, name: 'HY', influence: 2, impact: 5},
-                        {id:4, name: 'HY', influence: 1, impact: 3}
-                    ],
-                    'Analyst A': [
-                        {id:1, name: 'HY', influence: 4, impact: 5},
-                        {id:2, name: 'HY', influence: 3, impact: 3},
-                        {id:3, name: 'HY', influence: 2, impact: 5},
-                        {id:4, name: 'HY', influence: 1, impact: 3}
-                    ]
-                }} />
+                <HRIAMap ratings={userSubmissionsGrouped} />
             </TabPanel>
         </Box>
         </Box>
