@@ -150,7 +150,7 @@ export function MatrixMap({
                         ]
                     }
                 ]}
-                tooltip={CustomTooltip}
+                tooltip={(props) => <CustomTooltip {...props} xLabel={xLabel} yLabel={yLabel} />}
             />
         </Box>
     );

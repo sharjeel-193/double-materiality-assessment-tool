@@ -16,14 +16,13 @@ import {
 import { MdUpload as UploadIcon, MdCheckCircle as CheckIcon } from 'react-icons/md';
 
 interface FileUploadMapperProps {
-    // Data props
-    pendingUploaders: string[];
-    submittedUploaders?: string[];
     
     // Content props
     title: string;
     description: string;
     label: string;
+    submissionMap: Record<string, string>
+    uploaders: { id: string; name: string }[];
     
     // State props
     selectedUploader: string;
@@ -42,8 +41,8 @@ interface FileUploadMapperProps {
 }
 
 export function FileUploadMapper({
-    pendingUploaders,
-    submittedUploaders = [],
+    submissionMap,
+    uploaders,
     label,
     selectedUploader,
     uploadError,
@@ -56,8 +55,9 @@ export function FileUploadMapper({
 }: FileUploadMapperProps) {
 
     // Check if all uploaders have submitted
-    const allUploaded = pendingUploaders.length === 0;
-
+    const allUploaded = Object.keys(submissionMap).length === uploaders.length;
+    const pendingUploaders = uploaders.filter(user => !(user.id in submissionMap))
+    const submittedUploaders = uploaders.filter(user => (user.id in submissionMap));
     // Check if there are any alerts to show
     const hasActiveAlert = uploadError || successMessage || (pendingUploaders.length > 0) || allUploaded;
 
@@ -86,9 +86,9 @@ export function FileUploadMapper({
                     >
                         {/* Pending uploaders */}
                         {pendingUploaders.map(person => (
-                        <MenuItem key={person} value={person}>
+                        <MenuItem key={person.id} value={person.id}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-                                <Typography>{person}</Typography>
+                                <Typography>{person.name}</Typography>
                             </Box>
                         </MenuItem>
                         ))}
@@ -153,7 +153,7 @@ export function FileUploadMapper({
                     {pendingUploaders.length > 0 && !uploadError && !successMessage && (
                         <Alert severity="info" sx={{ mb: 2 }}>
                             <Typography variant="body2">
-                                <strong>Pending submissions from:</strong> {pendingUploaders.join(', ')}
+                                <strong>Pending submissions from:</strong> {pendingUploaders.map(uploader => uploader.name).join(', ')}
                             </Typography>
                         </Alert>
                     )}

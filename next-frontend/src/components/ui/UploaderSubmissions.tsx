@@ -8,10 +8,9 @@ import { CSVColumn } from '@/lib/types';
 
 interface UploaderSubmissionsProps<T> {
     csvStructure: CSVColumn[];
-    teamUploaders: string[];
+    teamUploaders: { id: string; name: string }[];
+    submissionMap: Record<string, string>,
     submissions: Record<string, T[]>;
-    pendingUploaders: string[];
-    submittedUploaders: string[];
     onUploadData: (uploader: string, data: T[]) => void;
     onRemoveUploaderData: (uploader: string) => void;
     title: string;
@@ -23,8 +22,7 @@ export function UploaderSubmissions<T>({
     csvStructure,
     teamUploaders,
     submissions,
-    pendingUploaders,
-    submittedUploaders,
+    submissionMap,
     onUploadData,
     onRemoveUploaderData,
     title,
@@ -62,6 +60,7 @@ export function UploaderSubmissions<T>({
             selectedUploader,
             csvStructure,
             (uploader, data) => {
+                console.log(uploader, data)
                 onUploadData(uploader, data as T[]);
             },
             setUploadError,
@@ -88,8 +87,8 @@ export function UploaderSubmissions<T>({
             </Box>
             <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'center' }}>
                 <FileUploadMapper
-                    pendingUploaders={pendingUploaders}
-                    submittedUploaders={submittedUploaders}
+                    submissionMap={submissionMap}
+                    uploaders={teamUploaders}
                     title={title}
                     description={description}
                     label="Select Uploader"
@@ -104,8 +103,7 @@ export function UploaderSubmissions<T>({
                 />
                 <FileUploadersSummary
                     uploaders={teamUploaders}
-                    submittedUploaders={submittedUploaders}
-                    pendingUploaders={pendingUploaders}
+                    submissionMap={submissionMap}
                     title="Team Uploaders Status"
                     getUploadCount={getUploadCount}
                     onRemoveUploader={onRemoveUploaderData}

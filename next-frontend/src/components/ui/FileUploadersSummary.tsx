@@ -18,9 +18,8 @@ import {
 
 interface FileUploadersSummaryProps {
     // Data props
-    uploaders: string[];
-    submittedUploaders: string[];
-    pendingUploaders: string[];
+    uploaders: { id: string; name: string }[];
+    submissionMap: Record<string, string>,
     
     // Content props
     title: string;
@@ -38,7 +37,7 @@ interface FileUploadersSummaryProps {
 
 export function FileUploadersSummary({
     uploaders,
-    submittedUploaders,
+    submissionMap,
     title,
     onRemoveUploader,
     showDeleteOnHover = true,
@@ -68,12 +67,12 @@ export function FileUploadersSummary({
         >
             <List sx={{ p: 0 }}>
             {uploaders.map((uploader, index) => {
-                const hasSubmitted = submittedUploaders.includes(uploader);
+                const hasSubmitted = uploader.id in submissionMap
                 
                 return (
                 <ListItem
-                    key={uploader}
-                    onMouseEnter={() => setHoveredUploader(uploader)}
+                    key={uploader.id}
+                    onMouseEnter={() => setHoveredUploader(uploader.id)}
                     onMouseLeave={() => setHoveredUploader('')}
                     sx={{
                         borderBottom: index < uploaders.length - 1 ? '1px solid' : 'none',
@@ -101,7 +100,7 @@ export function FileUploadersSummary({
                                 color: hasSubmitted ? 'success.main' : 'text.disabled',
                             }}
                             >
-                            {uploader}
+                            {uploader.name}
                             </Typography>
                         }
                     />
@@ -109,11 +108,11 @@ export function FileUploadersSummary({
                     {/* Delete button on hover */}
                     {hasSubmitted && 
                     showDeleteOnHover && 
-                    hoveredUploader === uploader && 
+                    hoveredUploader === uploader.id && 
                     onRemoveUploader && (
                         <IconButton
                             size="small"
-                            onClick={() => handleRemove(uploader)}
+                            onClick={() => handleRemove(uploader.id)}
                             sx={{ 
                             color: 'error.main',
                             opacity: 0.8,
@@ -131,7 +130,7 @@ export function FileUploadersSummary({
             })}
             
             {/* Empty state */}
-            {uploaders.length === 0 && (
+            {uploaders.length === Object.keys(submissionMap).length && (
                 <ListItem sx={{ py: 4, justifyContent: 'center' }}>
                     <Box sx={{ textAlign: 'center' }}>
                         <Typography variant="body2" color="text.secondary">
