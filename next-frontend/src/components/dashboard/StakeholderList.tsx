@@ -104,12 +104,12 @@ export function StakeholderList({ stakeholders, onEdit, onDelete }: StakeholderL
                             <TableCell>
                                 <Box>
                                     <Typography variant="body2" color="text.secondary">
-                                        {stakeholder.activity.name}
+                                        {stakeholder.activity?.name}
                                     </Typography>
                                     <Chip 
                                         size='small'  
-                                        label={stakeholder.activity.type} 
-                                        color={stakeholder.activity.type === 'DOWNSTREAM' ? 'primary' : 'secondary'}
+                                        label={stakeholder.activity?.type} 
+                                        color={stakeholder.activity?.type === 'DOWNSTREAM' ? 'primary' : 'secondary'}
                                     />
                                 </Box>
                             </TableCell>

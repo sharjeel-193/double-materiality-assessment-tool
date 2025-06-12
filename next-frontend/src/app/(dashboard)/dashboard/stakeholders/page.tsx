@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Tabs, Tab, Typography } from '@mui/material';
 import { PotentialStakeholders, StakeholderRatings, HRIAMap } from '@/sections';
-import { useStakeholder } from '@/hooks';
+import { useStakeholder, useUserSubmission } from '@/hooks';
 import { useReportContext } from '@/providers';
+import { CreateUserSubmissionInput } from '@/types'
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -43,23 +44,49 @@ export default function StakeholdersPage() {
     const {
         stakeholders,
         stakeholderLoading,
-        stakeholderError,
-        stakeholderMessage,
         createStakeholder,
         updateStakeholder,
         fetchStakeholdersByReport,
         deleteStakeholder
     } = useStakeholder()
 
+    const {
+        userSubmissions,
+        userSubmissionLoading,
+        users,
+        fetchUserSubmissionsByReport,
+        fetchUsersByCompany,
+        createUserSubmission,
+        deleteUserSubmission
+    } = useUserSubmission()
+
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
     };
 
+    const handleCreateUserSubmission = async (input: CreateUserSubmissionInput) => {
+        await createUserSubmission(input)
+    }
+
+    const handleDeleteUSerSubmission = async (id: string) => {
+       await deleteUserSubmission(id)
+    }
+
     useEffect(() => {
         if (currentReport?.id) {
+            // console.log("HERE FETCHING STAKEHOLDERS")
             fetchStakeholdersByReport(currentReport.id)
         }
     }, [currentReport?.id, fetchStakeholdersByReport]);
+
+    useEffect(() => {
+        if(currentReport?.id){
+            console.log("HERE FETCHING USERS AND SUBMISSIONS")
+            fetchUsersByCompany(currentReport.companyId)
+            fetchUserSubmissionsByReport(currentReport.id)
+        }
+        console.log({SUB: userSubmissions})
+    }, [currentReport?.companyId, currentReport?.id, fetchUserSubmissionsByReport, fetchUsersByCompany])
 
     return (
         <Box>
@@ -95,7 +122,8 @@ export default function StakeholdersPage() {
 
             <TabPanel value={value} index={0}>
                 <PotentialStakeholders 
-                    stakeholdersList={stakeholders} 
+                    stakeholdersList={stakeholders}
+                    loading={stakeholderLoading} 
                     updateStakeholder={updateStakeholder} 
                     createStakeholder={createStakeholder} 
                     deleteStakeholder={deleteStakeholder}
@@ -103,7 +131,14 @@ export default function StakeholdersPage() {
             </TabPanel>
 
             <TabPanel value={value} index={1}>
-                <StakeholderRatings />
+                <StakeholderRatings 
+                    users={users} 
+                    userSubmissions={userSubmissions} 
+                    loading={userSubmissionLoading}
+                    report={currentReport!.id}
+                    createUserSubmission={handleCreateUserSubmission}
+                    deleteUserSubmission={handleDeleteUSerSubmission}
+                />
             </TabPanel>
 
             <TabPanel value={value} index={2}>

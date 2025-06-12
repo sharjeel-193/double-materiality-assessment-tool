@@ -1,4 +1,4 @@
-import { Stakeholder, CSVColumn } from '@/lib/types';
+import { CSVColumn } from '@/lib/types';
 
 export const createCSV = (content: string, name: string) => {
     const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
@@ -15,27 +15,6 @@ export const createCSV = (content: string, name: string) => {
     }
 }
 
-export const downloadStakeholderMappingCSV = (stakeholders: Stakeholder[]) => {
-    // Create CSV headers
-    const headers = ['id', 'Name', 'Description', 'Influence', 'Impact'];
-    
-    // Create CSV rows with stakeholder data and empty influence/impact fields
-    const csvRows = stakeholders.map(stakeholder => [
-        stakeholder.id.toString(),
-        `"${stakeholder.name.replace(/"/g, '""')}"`, // Escape quotes in name
-        `"${stakeholder.description.replace(/"/g, '""')}"`, // Escape quotes in description
-        '""', // Empty influence field
-        '""'  // Empty impact field
-    ]);
-
-    // Combine headers and rows
-    const csvContent = [
-        headers.join(','),
-        ...csvRows.map(row => row.join(','))
-    ].join('\n');
-
-    createCSV(csvContent, 'stakeholder-mapping-for-analysts.csv')
-};
 
 
 

@@ -9,17 +9,18 @@ import {
 } from '@mui/material';
 import { MdAdd as AddIcon, MdDownload as DownloadIcon } from 'react-icons/md';
 import { CreateStakeholderInput, Stakeholder, UpdateStakeholderInput } from '@/types';
-import { StakeholderList, StakeholderDialog } from '@/components';
-import { downloadStakeholderMappingCSV } from '@/lib/csvHandlers';
+import { StakeholderList, StakeholderDialog, Loader } from '@/components';
+import { createCSV } from '@/lib/csvHandlers'; // Make sure this is imported
 
 interface PotentialStakeholdersProps {
     stakeholdersList: Stakeholder[],
+    loading: boolean,
     createStakeholder: (input: CreateStakeholderInput) => Promise<Stakeholder | null>;
     updateStakeholder: (id: string, input: UpdateStakeholderInput) => Promise<Stakeholder | null>;
     deleteStakeholder: (id: string) => Promise<boolean>;
 }
 
-export function PotentialStakeholders({stakeholdersList, createStakeholder, updateStakeholder, deleteStakeholder}: PotentialStakeholdersProps) {
+export function PotentialStakeholders({stakeholdersList, createStakeholder, updateStakeholder, deleteStakeholder, loading}: PotentialStakeholdersProps) {
     const [stakeholders, setStakeholders] = useState<Stakeholder[]>([]);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [currentStakeholder, setCurrentStakeholder] = useState<Stakeholder | null>(null);
@@ -71,8 +72,24 @@ export function PotentialStakeholders({stakeholdersList, createStakeholder, upda
     };
 
     const downloadCSV = () => {
-        // downloadStakeholderMappingCSV(stakeholders)
-    }
+        const headers = ['id', 'name', 'description', 'influence', 'impact'];
+        const csvRows = stakeholders.map(s => [
+            s.id,
+            s.name,
+            s.description || '',
+            '', // influence (empty)
+            '', // impact (empty)
+        ]);
+        const csvContent = [
+            headers.join(','),
+            ...csvRows.map(row =>
+                row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(',')
+            )
+        ].join('\n');
+
+        createCSV(csvContent, 'stakeholder-mapping-survey.csv');
+    };
+
 
     useEffect(() => {
         setStakeholders(stakeholdersList)
@@ -80,6 +97,8 @@ export function PotentialStakeholders({stakeholdersList, createStakeholder, upda
     }, [stakeholdersList])
     return (
         <Box>
+            {loading?
+            <Loader message='Loading Stakeholders Data ...' />:
             <Paper sx={{ p: 4, borderRadius: 3 }}>
                 <Box sx={{ 
                     display: 'flex', 
@@ -143,7 +162,7 @@ export function PotentialStakeholders({stakeholdersList, createStakeholder, upda
                     onClose={handleDialogClose}
                     onSave={handleSave}
                 />
-            </Paper>
+            </Paper>}
         </Box>
     );
 }
