@@ -16,6 +16,8 @@ import { ActivityModule } from './activity/activity.module';
 import { StakeholderModule } from './stakeholder/stakeholder.module';
 import { UserSubmissionModule } from './user-submission/user-submission.module';
 import { StakeholderSubmissionModule } from './stakeholder-submission/stakeholder-submission.module';
+import { ImpactModule } from './impact/impact.module';
+import { FinancialEffectModule } from './financial-effect/financial-effect.module';
 
 @Module({
     imports: [
@@ -38,6 +40,8 @@ import { StakeholderSubmissionModule } from './stakeholder-submission/stakeholde
         StakeholderModule,
         UserSubmissionModule,
         StakeholderSubmissionModule,
+        ImpactModule,
+        FinancialEffectModule,
     ],
     controllers: [AppController],
     providers: [AppService], // Remove PrismaService, UserService, UserResolver
