@@ -1,8 +1,9 @@
 // report/entities/report.entity.ts
-import { ObjectType, Field, ID, Int } from '@nestjs/graphql';
+import { ObjectType, Field, ID, Int, InputType } from '@nestjs/graphql';
 import { Context } from 'src/context/entities/context.enitity';
 
 @ObjectType()
+@InputType('ReportInput')
 export class Report {
     @Field(() => ID)
     id: string;

@@ -85,3 +85,34 @@ registerEnumType(ActivityType, {
     name: 'ActivityType',
     description: 'Position in value chain',
 });
+
+export enum ImpactType {
+    POSITIVE = 'POSITIVE',
+    NEGATIVE = 'NEGATIVE',
+}
+
+export enum OrderOfImpact {
+    IMMEDIATE = 'IMMEDIATE',
+    ENABLING = 'ENABLING',
+    STRUCTURAL = 'STRUCTURAL',
+}
+
+registerEnumType(ImpactType, {
+    name: 'ImpactType',
+    description: 'The type of impact (positive or negative)',
+});
+
+registerEnumType(OrderOfImpact, {
+    name: 'OrderOfImpact',
+    description: 'The order of effect for the impact',
+});
+
+export enum FinancialEffectType {
+    RISK = 'RISK',
+    OPPORTUNITY = 'OPPORTUNITY',
+}
+
+registerEnumType(FinancialEffectType, {
+    name: 'FinancialEffectType',
+    description: 'Financial Effect Type (Risk or Opportunity)',
+});
