@@ -2,8 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Box, Tabs, Tab, Typography } from '@mui/material';
-import { TopicRatings, TopicStandards } from '@/sections';
-import { TopicsMatrix } from '@/sections/dashboard/TopicsMatrix';
+import { TopicRatings, TopicStandards, MaterialityMatrix } from '@/sections';
 import { useQuery } from '@apollo/client';
 import { GET_TOPICS_BY_STANDARD } from '@/graphql/queries';
 import { useReportContext } from '@/providers';
@@ -57,10 +56,12 @@ export default function SustainabilityTopicsPage () {
             stakeholderSubmissionLoading,
             financialStakeholders,
             impactStakeholders,
+            materialityMatrixData,
             fetchStakeholderSubmissionsByReportAndType,
             fetchStakeholdersByReport,
             createStakeholderSubmission,
-            deleteStakeholderSubmission
+            deleteStakeholderSubmission,
+            fetchMaterialityMatrixData
         } = useStakeholderSubmission()
 
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -163,7 +164,12 @@ export default function SustainabilityTopicsPage () {
                 </TabPanel>
 
                 <TabPanel value={value} index={3}>
-                    <TopicsMatrix ratings={{}} />
+                    <MaterialityMatrix
+                        materialityMatrixData={materialityMatrixData}
+                        fetchMaterialityMatrixData={fetchMaterialityMatrixData}
+                        reportId={currentReport!.id}
+                        loading={stakeholderSubmissionLoading}
+                    />
                 </TabPanel>
             </Box>
         </Box>

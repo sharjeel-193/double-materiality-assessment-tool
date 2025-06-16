@@ -43,5 +43,6 @@ export type {
     CreateStakeholderSubmissionInput,
     TopicRating,
     StakeholderSubmission,
-    TopicRatingType
+    TopicRatingType,
+    MaterialityMatrixItem
 } from './submission'

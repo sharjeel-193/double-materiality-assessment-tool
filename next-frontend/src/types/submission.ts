@@ -104,3 +104,12 @@ export type StakeholderSubmissionGroupedData = {
         topicRatings: TopicRating[];
     };
 };
+
+export interface MaterialityMatrixItem {
+    topicId: string;
+    topicName: string;
+    impactScore: number;
+    financialScore: number;
+    impactRatingsCount: number;
+    financialRatingsCount: number;
+}
