@@ -1,7 +1,7 @@
 import { useApolloClient } from "@apollo/client";
 import { useCallback, useState } from "react";
-import { CREATE_STAKEHOLDER_SUBMISSION, DELETE_STAKEHOLDER_SUBMISSION, GET_STAKEHOLDER_SUBMISSIONS_GROUPED_BY_REPORT_ANT_TYPE, GET_STAKEHOLDERS_BY_REPORT_FOR_SUBMISSIONS } from "@/graphql/queries";
-import { StakeholderSubmissionGroupedData, StakeholderSubmission, Stakeholder, TopicRatingType, Topic } from "@/types";
+import { CREATE_STAKEHOLDER_SUBMISSION, DELETE_STAKEHOLDER_SUBMISSION, GET_MATERIALITY_MATRIX_BY_REPORT, GET_STAKEHOLDER_SUBMISSIONS_GROUPED_BY_REPORT_ANT_TYPE, GET_STAKEHOLDERS_BY_REPORT_FOR_SUBMISSIONS } from "@/graphql/queries";
+import { StakeholderSubmissionGroupedData, StakeholderSubmission, Stakeholder, TopicRatingType, Topic, MaterialityMatrixItem } from "@/types";
 import { TopicRating, CreateStakeholderSubmissionInput } from "@/types";
 
 interface useStakeholderSubmissionReturn {
@@ -9,6 +9,7 @@ interface useStakeholderSubmissionReturn {
     stakeholderFinancialSubmissions: StakeholderSubmissionGroupedData;
     financialStakeholders: Stakeholder[]
     impactStakeholders: Stakeholder[]
+    materialityMatrixData: MaterialityMatrixItem[];
     stakeholderSubmissionLoading: boolean;
     stakeholderSubmissionMessage: string | null;
     stakeholderSubmissionError: string | null;
@@ -17,11 +18,14 @@ interface useStakeholderSubmissionReturn {
     deleteStakeholderSubmission: (id: string) => Promise<boolean>;
     fetchStakeholderSubmissionsByReportAndType: (reportId: string, ratingsType: TopicRatingType) => Promise<StakeholderSubmissionGroupedData>;
     fetchStakeholdersByReport: (reportId: string) => Promise<Stakeholder[]>;
+    fetchMaterialityMatrixData: (reportId: string) => Promise<MaterialityMatrixItem[]>
 }
 
 export function useStakeholderSubmission(): useStakeholderSubmissionReturn {
     const [stakeholderImpactSubmissions, setStakeholderImpactSubmissions] = useState<StakeholderSubmissionGroupedData>({});
     const [stakeholderFinancialSubmissions, setStakeholderFinancialSubmissions] = useState<StakeholderSubmissionGroupedData>({});
+    const [materialityMatrixData, setMaterialityMatrixData] = useState<MaterialityMatrixItem[]>([]);
+
 
     const [stakeholderSubmissionLoading, setStakeholderSubmissionLoading] = useState<boolean>(false);
     const [stakeholderSubmissionMessage, setStakeholderSubmissionMessage] = useState<string | null>(null);
@@ -106,62 +110,62 @@ export function useStakeholderSubmission(): useStakeholderSubmissionReturn {
 
 
 
-    const addOrUpdateSubmission = useCallback((newSubmission: StakeholderSubmission, type: TopicRatingType) => {
-        if(type === 'FINANCIAL'){
-            setStakeholderFinancialSubmissions(prev => {
-                const updated = {
-                    ...prev,
-                    [newSubmission.id]: {
-                        stakeholderId: newSubmission.stakeholder?.id,
-                        stakeholderName: newSubmission.stakeholder?.name,
-                        topicRatings: newSubmission.topicRatings || []
-                    }
-                };
+    // const addOrUpdateSubmission = useCallback((newSubmission: StakeholderSubmission, type: TopicRatingType) => {
+    //     if(type === 'FINANCIAL'){
+    //         setStakeholderFinancialSubmissions(prev => {
+    //             const updated = {
+    //                 ...prev,
+    //                 [newSubmission.id]: {
+    //                     stakeholderId: newSubmission.stakeholder?.id,
+    //                     stakeholderName: newSubmission.stakeholder?.name,
+    //                     topicRatings: newSubmission.topicRatings || []
+    //                 }
+    //             };
 
-                console.log("Adding Updating Submissions in Hook")
+    //             console.log("Adding Updating Submissions in Hook")
 
-                const averages = calculateAverages(updated);
-                if (averages.length > 0) {
-                    updated['Average'] = {
-                        stakeholderId: 'system',
-                        stakeholderName: 'Average',
-                        topicRatings: averages,
-                    };
-                }
+    //             const averages = calculateAverages(updated);
+    //             if (averages.length > 0) {
+    //                 updated['Average'] = {
+    //                     stakeholderId: 'system',
+    //                     stakeholderName: 'Average',
+    //                     topicRatings: averages,
+    //                 };
+    //             }
 
-                return updated
-            })
-        } else if(type === 'IMPACT'){
-            setStakeholderImpactSubmissions(prev => {
-                const updated = {
-                    ...prev,
-                    [newSubmission.id]: {
-                        stakeholderId: newSubmission.stakeholder?.id,
-                        stakeholderName: newSubmission.stakeholder?.name,
-                        topicRatings: newSubmission.topicRatings || []
-                    }
-                };
+    //             return updated
+    //         })
+    //     } else if(type === 'IMPACT'){
+    //         setStakeholderImpactSubmissions(prev => {
+    //             const updated = {
+    //                 ...prev,
+    //                 [newSubmission.id]: {
+    //                     stakeholderId: newSubmission.stakeholder?.id,
+    //                     stakeholderName: newSubmission.stakeholder?.name,
+    //                     topicRatings: newSubmission.topicRatings || []
+    //                 }
+    //             };
 
-                console.log("Adding Updating Submissions in Hook")
+    //             console.log("Adding Updating Submissions in Hook")
 
-                const averages = calculateAverages(updated);
-                if (averages.length > 0) {
-                    updated['Average'] = {
-                        stakeholderId: 'system',
-                        stakeholderName: 'Average',
-                        topicRatings: averages,
-                    };
-                }
+    //             const averages = calculateAverages(updated);
+    //             if (averages.length > 0) {
+    //                 updated['Average'] = {
+    //                     stakeholderId: 'system',
+    //                     stakeholderName: 'Average',
+    //                     topicRatings: averages,
+    //                 };
+    //             }
 
-                return updated
-            })
-        } else {
-            console.log("Rating Type not Recongnizable")
-            return null
-        }
+    //             return updated
+    //         })
+    //     } else {
+    //         console.log("Rating Type not Recongnizable")
+    //         return null
+    //     }
         
         
-    }, [calculateAverages]);
+    // }, [calculateAverages]);
 
         // Helper function to remove submission and recalculate averages
     const removeSubmission = useCallback((submissionId: string) => {
@@ -344,6 +348,34 @@ export function useStakeholderSubmission(): useStakeholderSubmissionReturn {
         }
     }, [clearError, clearMessage, client, handleError, handleMessage, removeSubmission]);
 
+const fetchMaterialityMatrixData = useCallback(async (reportId: string) => {
+        try {
+            setStakeholderSubmissionLoading(true);
+            clearError();
+            clearMessage();
+
+            const response = await client.query({
+                query: GET_MATERIALITY_MATRIX_BY_REPORT,
+                variables: { reportId },
+                fetchPolicy: 'network-only',
+            });
+
+            const { success, data, message } = response.data.materialityMatrixByReport;
+
+            if (success) {
+                setMaterialityMatrixData(data);
+                handleMessage(message);
+                return data;
+            }
+            throw new Error(message || 'Failed to fetch materiality matrix data');
+        } catch (error) {
+            console.error('Error fetching materiality matrix data:', error);
+            handleError('Failed to fetch materiality matrix data');
+            return [];
+        } finally {
+            setStakeholderSubmissionLoading(false);
+        }
+    }, [client, clearError, clearMessage, handleError, handleMessage]);
 
     
     
@@ -355,10 +387,12 @@ export function useStakeholderSubmission(): useStakeholderSubmissionReturn {
         stakeholderImpactSubmissions,
         financialStakeholders,
         impactStakeholders,
+        materialityMatrixData,
 
         createStakeholderSubmission,
         deleteStakeholderSubmission,
         fetchStakeholderSubmissionsByReportAndType,
-        fetchStakeholdersByReport
+        fetchStakeholdersByReport,
+        fetchMaterialityMatrixData
     }
 }

@@ -172,3 +172,21 @@ export const GET_STAKEHOLDERS_BY_REPORT_FOR_SUBMISSIONS = gql`
     }
 `
 
+export const GET_MATERIALITY_MATRIX_BY_REPORT = gql`
+    query MaterialityMatrixByReport($reportId: String!) {
+        materialityMatrixByReport(reportId: $reportId) {
+            success
+            message
+            data {
+                topicId
+                topicName
+                impactScore
+                financialScore
+                impactRatingsCount
+                financialRatingsCount
+            }
+        }
+    }
+`;
+
+
