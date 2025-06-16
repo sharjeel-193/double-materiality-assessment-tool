@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { Box, Tabs, Tab, Typography } from '@mui/material';
+import { FinancialEffectList, ImpactList } from '@/sections';
+import { useReportContext } from '@/providers';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -36,6 +38,7 @@ function a11yProps(index: number) {
 
 export default function DMAPage() {
     const [value, setValue] = useState(0);
+    const { currentReport } = useReportContext();
 
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
@@ -74,14 +77,14 @@ export default function DMAPage() {
             </Box>
 
             <TabPanel value={value} index={0}>
-                <Typography>Material Topics</Typography>
+                <Typography>Topics</Typography>
             </TabPanel>
 
             <TabPanel value={value} index={1}>
-                <Typography>Impact Assessment</Typography>
+                <ImpactList reportId={currentReport!.id} />
             </TabPanel>
             <TabPanel value={value} index={2}>
-                <Typography>Financial Assessment</Typography>
+                <FinancialEffectList reportId={currentReport!.id} />
             </TabPanel>
 
         </Box>

@@ -46,3 +46,13 @@ export type {
     TopicRatingType,
     MaterialityMatrixItem
 } from './submission'
+
+export type {
+    CreateImpactInput,
+    Impact,
+    ImpactType,
+    OrderOfImpact,
+    FinancialType,
+    FinancialEffect,
+    CreateFinancialEffectInput
+} from './effects'
