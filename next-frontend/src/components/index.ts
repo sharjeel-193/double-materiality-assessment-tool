@@ -27,3 +27,11 @@ export { CreateFirstReport } from './dashboard/CreateFirstReport'
 export { ReportSelector } from './dashboard/ReportSelector'
 
 export { ConfirmationDialog } from './ui/ConfirmationDialog'
+
+export { ImpactCard } from './dashboard/ImpactCard'
+export { CreateImpactDialog } from './dashboard/CreateImpactDialog'
+
+export { FinancialEffectCard } from './dashboard/FinancialEffectCard'
+export { CreateFinancialEffectDialog } from './dashboard/CreateFinancialEffectDialog'
+export { FinancialEffectsHeatmapDialog } from './dashboard/FinancialEffectsHeatMapDialog'
+export { ImpactMatrixDialog } from './dashboard/ImpactMatrixDialog'
