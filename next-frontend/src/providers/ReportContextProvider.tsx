@@ -4,31 +4,23 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { useApolloClient } from '@apollo/client';
 import { useCompanyContext } from '@/providers';
-import { GET_REPORT_BY_YEAR, CREATE_REPORT } from '@/graphql/queries';
-import { Context } from '@/types';
-
-interface Report {
-    id: string;
-    year: number;
-    companyId: string;
-    standardId: string;
-    totalTopics: number;
-    materialTopics: number;
-    totalImpacts: number;
-    materialImpacts: number;
-    createdAt: string;
-    updatedAt: string;
-    context: Context
-}
+import { CREATE_REPORT, GET_REPORT_BY_COMPANY_AND_YEAR, UPDATE_REPORT } from '@/graphql/queries';
+import { Report, updateReportInput } from '@/types'
+import { UPDATE_REPORT_STATUS } from '@/graphql/queries/report';
+// Updated Report interface to match new schema
 
 interface ReportContextType {
     availableYears: number[];
     currentReport: Report | null;
     selectedYear: number | null;
     setSelectedYear: (year: number) => void;
-    createReport: (year: number) => Promise<Report | null>; // ✅ Renamed
-    loading: boolean;
+    createReport: (year: number) => Promise<Report | null>;
+    updateReport: (input: updateReportInput ) => Promise<Report | null>;
+    updateReportStatus: (status: number ) => Promise<Report | null>;
+    reportLoading: boolean;
     hasReports: boolean;
+    reportMessage: string | null,
+    reportError: string | null
 }
 
 const ReportContext = createContext<ReportContextType | undefined>(undefined);
@@ -36,44 +28,75 @@ const ReportContext = createContext<ReportContextType | undefined>(undefined);
 export function ReportContextProvider({ children }: { children: ReactNode }) {
     const [currentReport, setCurrentReport] = useState<Report | null>(null);
     const [selectedYear, setSelectedYear] = useState<number | null>(null);
-    const [loading, setLoading] = useState(false);
+    const [reportLoading, setReportLoading] = useState<boolean>(false);
+    const [reportMessage, setReportMessage] = useState<string | null>(null)
+    const [reportError, setReportError] = useState<string | null>(null)
     
     const { company, loading: companyLoading, addReportYear } = useCompanyContext();
     const client = useApolloClient();
 
-    // Get available years from company context
     const availableYears = useMemo(() => {
         return company?.reportYears || [];
     }, [company?.reportYears]);
     const hasReports = availableYears.length > 0;
 
+    // Helper function to transform response data to Report interface
+    // const transformResponseToReport = (responseData: any): Report | null => {
+    //     if (!responseData) return null;
+        
+    //     // Handle both direct data and ResponseDto format
+    //     const reportData = responseData.data ? JSON.parse(responseData.data) : responseData;
+        
+    //     return {
+    //         ...reportData,
+    //         // Ensure JSON fields are strings (convert if they come as objects)
+    //         impactRadar: typeof reportData.impactRadar === 'string' 
+    //             ? reportData.impactRadar 
+    //             : reportData.impactRadar ? JSON.stringify(reportData.impactRadar) : undefined,
+    //         financialRadar: typeof reportData.financialRadar === 'string' 
+    //             ? reportData.financialRadar 
+    //             : reportData.financialRadar ? JSON.stringify(reportData.financialRadar) : undefined,
+    //         summary: typeof reportData.summary === 'string' 
+    //             ? reportData.summary 
+    //             : reportData.summary ? JSON.stringify(reportData.Summary) : undefined,
+    //         topStakeholders: typeof reportData.topStakeholders === 'string' 
+    //             ? reportData.topStakeholders 
+    //             : reportData.topStakeholders ? JSON.stringify(reportData.topStakeholders) : undefined,
+    //         topTopics: typeof reportData.topTopics === 'string' 
+    //             ? reportData.topTopics 
+    //             : reportData.topTopics ? JSON.stringify(reportData.topTopics) : undefined,
+    //     };
+    // };
+
     const fetchReportByYear = useCallback(async (year: number) => {
-            if (!company?.id) return;
+        if (!company?.id) return;
 
-            try {
-                setLoading(true);
-                const result = await client.query({
-                    query: GET_REPORT_BY_YEAR,
-                    variables: { 
-                        companyId: company.id, 
-                        year: year 
-                    }
-                });
-                const {data} = result
-                console.log({Data: result})
-
-                if (data?.reportByYear) {
-                    setCurrentReport(data.reportByYear);
-                } else {
-                    setCurrentReport(null);
+        try {
+            setReportLoading(true);
+            const response = await client.query({
+                query: GET_REPORT_BY_COMPANY_AND_YEAR,
+                variables: { 
+                    companyId: company.id, 
+                    year: year 
                 }
-            } catch (error) {
-                console.error('Failed to fetch report:', error);
-                setCurrentReport(null);
-            } finally {
-                setLoading(false);
+            });
+            const { data, success, message } = response.data.reportByCompanyAndYear;
+
+            if(success && data){
+                console.log({'Report Data': data})
+                setCurrentReport(data)
+                setReportMessage(message)
             }
-    }, [company?.id, client])
+
+            return data
+        } catch (error) {
+            console.error('Failed to fetch report:', error);
+            setReportError('Failed to Fetch Report ...')
+            setCurrentReport(null);
+        } finally {
+            setReportLoading(false);
+        }
+    }, [company?.id, client]);
 
     // Auto-select latest year when company data loads
     useEffect(() => {
@@ -85,42 +108,99 @@ export function ReportContextProvider({ children }: { children: ReactNode }) {
 
     // Fetch report when year changes
     useEffect(() => {
-        
         if (selectedYear && company?.id) {
             fetchReportByYear(selectedYear);
         }
-    }, [selectedYear, company?.id, client, fetchReportByYear]);
+    }, [selectedYear, company?.id, fetchReportByYear]);
 
-    
-
-    const createReport = async (year: number): Promise<Report | null> => { // ✅ Renamed function
+    const createReport = useCallback(async (year: number): Promise<Report | null> => {
         if (!company?.id) return null;
 
         try {
-            const { data } = await client.mutate({
+            const response = await client.mutate({
                 mutation: CREATE_REPORT,
                 variables: {
                     createReportInput: {
                         year,
                         companyId: company.id,
-                        standardId: "f5c94a17-0c1a-499d-8f83-ef7e4d43e8c7", // Handle this appropriately
+                        standardId: "f5c94a17-0c1a-499d-8f83-ef7e4d43e8c7", 
+                        // Default values for new fields (they have defaults in the schema)
+                        totalStakeholders: 0,
+                        importantStakeholders: 0,
+                        totalTopics: 0,
+                        materialTopics: 0,
+                        totalImpacts: 0,
+                        totalFinancialEffects: 0,
+                        Status: 1,
                     }
                 }
             });
 
-            if (data?.createReport) {
-                const newReport = data.createReport;
-                setCurrentReport(newReport);
-                setSelectedYear(year);
-                addReportYear(year)
-                return newReport;
+            const {data, success, message} = response.data.createReport
+
+            if(success && data){
+                setCurrentReport(data)
+                addReportYear(data.year)
+                setReportMessage(message)
             }
-            return null;
+            return data
         } catch (error) {
             console.error('Failed to create report:', error);
             return null;
         }
-    };
+    }, [addReportYear, client, company?.id])
+
+    const updateReport = useCallback(async (input: updateReportInput): Promise <Report | null> => {
+        try {
+            setReportLoading(true)
+            const response = await client.mutate({
+                mutation: UPDATE_REPORT,
+                variables: {
+                    updateReportInput: input,
+                    id: currentReport?.id
+                }
+            })
+
+            const {data, success, message} = response.data.updateReport
+            if(success && data){
+                setCurrentReport(data)
+                setReportMessage(message)
+            }
+            return data
+        } catch (error) {
+            console.log("Error Updating Report: ", error)
+            setReportError("Failed to Update Report Status")
+            return null
+        } finally {
+            setReportLoading(false)
+        }
+    }, [client, currentReport?.id])
+
+    const updateReportStatus = useCallback(async (status: number): Promise <Report | null> => {
+        try {
+            setReportLoading(true)
+            const response = await client.mutate({
+                mutation: UPDATE_REPORT_STATUS,
+                variables: {
+                    status: status,
+                    id: currentReport?.id
+                }
+            })
+
+            const {data, success, message} = response.data.updateReportStatus
+            if(success && data){
+                setCurrentReport(data)
+                setReportMessage(message)
+            }
+            return data
+        } catch (error) {
+            console.log("Error Updating Report: ", error)
+            setReportError("Failed to Update Report Status")
+            return null
+        } finally {
+            setReportLoading(false)
+        }
+    }, [client, currentReport?.id])
 
     const handleSetSelectedYear = (year: number) => {
         setSelectedYear(year);
@@ -132,8 +212,12 @@ export function ReportContextProvider({ children }: { children: ReactNode }) {
             currentReport,
             selectedYear,
             setSelectedYear: handleSetSelectedYear,
-            createReport, // ✅ Updated provider value
-            loading: loading || companyLoading,
+            createReport,
+            updateReport,
+            updateReportStatus,
+            reportLoading: reportLoading || companyLoading,
+            reportError,
+            reportMessage,
             hasReports,
         }}>
             {children}

@@ -1,4 +1,9 @@
 export type {
+    Report,
+    updateReportInput
+} from './report'
+
+export type {
     Context,
     CreateContextInput,
     UpdateContextInput,
