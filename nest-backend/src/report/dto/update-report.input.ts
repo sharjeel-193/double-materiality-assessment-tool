@@ -1,9 +1,19 @@
-// report/dto/update-report.input.ts
-import { CreateReportInput } from './create-report.input';
-import { InputType, Field, PartialType, ID } from '@nestjs/graphql';
+// report/dto/update-report.dto.ts
+import { InputType, OmitType, PartialType } from '@nestjs/graphql';
+import { Report } from '../entities/report.entity';
 
 @InputType()
-export class UpdateReportInput extends PartialType(CreateReportInput) {
-    @Field(() => ID)
-    id: string;
-}
+export class UpdateReportInput extends PartialType(
+    OmitType(
+        Report,
+        [
+            'id',
+            'companyId',
+            'company',
+            'standardId',
+            'context',
+            'standard',
+        ] as const,
+        InputType,
+    ),
+) {}

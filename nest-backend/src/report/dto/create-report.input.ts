@@ -1,42 +1,28 @@
-// report/dto/create-report.input.ts
-import { InputType, Field, Int, ID } from '@nestjs/graphql';
-import { IsInt, IsString, IsNotEmpty, Min, Max } from 'class-validator';
+// report/dto/create-report.dto.ts
+import { InputType, OmitType } from '@nestjs/graphql';
+import { Report } from '../entities/report.entity';
 
 @InputType()
-export class CreateReportInput {
-    @Field(() => Int)
-    @IsInt()
-    @Min(2020)
-    @Max(new Date().getFullYear() + 1)
-    year: number;
-
-    @Field(() => ID)
-    @IsString()
-    @IsNotEmpty()
-    companyId: string;
-
-    @Field(() => ID)
-    @IsString()
-    @IsNotEmpty()
-    standardId: string;
-
-    @Field(() => Int, { defaultValue: 0 })
-    @IsInt()
-    @Min(0)
-    totalTopics?: number;
-
-    @Field(() => Int, { defaultValue: 0 })
-    @IsInt()
-    @Min(0)
-    materialTopics?: number;
-
-    @Field(() => Int, { defaultValue: 0 })
-    @IsInt()
-    @Min(0)
-    totalImpacts?: number;
-
-    @Field(() => Int, { defaultValue: 0 })
-    @IsInt()
-    @Min(0)
-    materialImpacts?: number;
-}
+export class CreateReportInput extends OmitType(
+    Report,
+    [
+        'id',
+        'createdAt',
+        'updatedAt',
+        'context',
+        'company',
+        'standard',
+        'topStakeholders',
+        'topTopics',
+        'importantStakeholders',
+        'materialTopics',
+        'totalImpacts',
+        'totalFinancialEffects',
+        'totalStakeholders',
+        'totalTopics',
+        'impactRadar',
+        'financialRadar',
+        'summary',
+    ] as const,
+    InputType,
+) {}
