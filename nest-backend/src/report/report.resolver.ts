@@ -1,62 +1,50 @@
 // report/report.resolver.ts
-import { Resolver, Query, Mutation, Args, Context } from '@nestjs/graphql';
-import { UseGuards } from '@nestjs/common';
+import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { ReportService } from './report.service';
 import { Report } from './entities/report.entity';
 import { CreateReportInput } from './dto/create-report.input';
-import { GqlAuthGuard } from '../auth/auth.guard';
-import { ForbiddenException } from '@nestjs/common';
+import { UpdateReportInput } from './dto/update-report.input';
+import { ReportResponse } from './dto/report-response';
 
 @Resolver(() => Report)
 export class ReportResolver {
     constructor(private readonly reportService: ReportService) {}
 
-    @Mutation(() => Report)
-    @UseGuards(GqlAuthGuard)
+    @Query(() => ReportResponse)
+    async reportByCompanyAndYear(
+        @Args('companyId') companyId: string,
+        @Args('year') year: number,
+    ): Promise<ReportResponse> {
+        const result = await this.reportService.getByCompanyAndYear(
+            companyId,
+            year,
+        );
+        return result;
+    }
+
+    @Mutation(() => ReportResponse)
     async createReport(
         @Args('createReportInput') createReportInput: CreateReportInput,
-        @Context() context: any,
-    ) {
-        const user = context.req.user;
-
-        // Ensure user can only create reports for their company
-        if (user.companyId !== createReportInput.companyId) {
-            throw new ForbiddenException(
-                'You can only create reports for your company',
-            );
-        }
-
-        return this.reportService.create(createReportInput);
+    ): Promise<ReportResponse> {
+        const result = await this.reportService.createReport(createReportInput);
+        return result;
     }
 
-    @Query(() => Report, { nullable: true })
-    @UseGuards(GqlAuthGuard)
-    async reportByYear(
-        @Args('companyId', { type: () => String }) companyId: string,
-        @Args('year', { type: () => Number }) year: number,
-        @Context() context: any,
-    ) {
-        const user = context.req.user;
-
-        // Ensure user can only access their company's reports
-        if (user.companyId !== companyId) {
-            throw new ForbiddenException('Access denied');
-        }
-
-        return this.reportService.findByCompanyAndYear(companyId, year);
+    @Mutation(() => ReportResponse)
+    async updateReport(
+        @Args('id') id: string,
+        @Args('updateReportInput') updateReportInput: UpdateReportInput,
+    ): Promise<ReportResponse> {
+        const result = this.reportService.updateReport(id, updateReportInput);
+        return result;
     }
 
-    @Query(() => [Report])
-    @UseGuards(GqlAuthGuard)
-    async companyReports(@Context() context: any) {
-        const user = context.req.user;
-        return this.reportService.findByCompany(user.companyId);
-    }
-
-    @Query(() => Report, { nullable: true })
-    @UseGuards(GqlAuthGuard)
-    async latestReport(@Context() context: any) {
-        const user = context.req.user;
-        return this.reportService.getLatestByCompany(user.companyId);
+    @Mutation(() => ReportResponse)
+    async updateReportStatus(
+        @Args('id') id: string,
+        @Args('status') status: number,
+    ): Promise<ReportResponse> {
+        const result = this.reportService.updateReportStatus(id, status);
+        return result;
     }
 }
