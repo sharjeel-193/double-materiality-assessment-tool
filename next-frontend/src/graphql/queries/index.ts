@@ -9,8 +9,9 @@ export {
 } from './company'
 
 export {
-    GET_REPORT_BY_YEAR,
-    CREATE_REPORT
+    GET_REPORT_BY_COMPANY_AND_YEAR,
+    CREATE_REPORT,
+    UPDATE_REPORT
 } from './report'
 
 export  {

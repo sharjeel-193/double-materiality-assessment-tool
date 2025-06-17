@@ -35,3 +35,6 @@ export { FinancialEffectCard } from './dashboard/FinancialEffectCard'
 export { CreateFinancialEffectDialog } from './dashboard/CreateFinancialEffectDialog'
 export { FinancialEffectsHeatmapDialog } from './dashboard/FinancialEffectsHeatMapDialog'
 export { ImpactMatrixDialog } from './dashboard/ImpactMatrixDialog'
+
+export { StatisticCard } from './dashboard/StatisticCard'
+export { ReportStatusTimeline } from './dashboard/ReportStatusTimeline'
