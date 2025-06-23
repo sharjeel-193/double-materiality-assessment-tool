@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 // report/report.service.ts
@@ -18,21 +19,40 @@ export class ReportService {
     constructor(private readonly prisma: PrismaService) {}
 
     // Helper method to transform Prisma result to Report entity
+    // In your report.service.ts
     private transformPrismaToReport(prismaReport: any): Report {
         return {
             ...prismaReport,
-            impactRadar: prismaReport.ImpactRadar
-                ? JSON.stringify(prismaReport.ImpactRadar)
-                : '',
+            // Fix: Handle JSON fields properly - don't convert null to empty string
+            impactRadar: prismaReport.impactRadar
+                ? typeof prismaReport.impactRadar === 'string'
+                    ? prismaReport.impactRadar
+                    : JSON.stringify(prismaReport.impactRadar)
+                : '{}', // Default to empty object, not empty string
+
             financialRadar: prismaReport.financialRadar
-                ? JSON.stringify(prismaReport.financialRadar)
-                : '',
+                ? typeof prismaReport.financialRadar === 'string'
+                    ? prismaReport.financialRadar
+                    : JSON.stringify(prismaReport.financialRadar)
+                : '{}', // Default to empty object, not empty string
+
+            Summary: prismaReport.Summary
+                ? typeof prismaReport.Summary === 'string'
+                    ? prismaReport.Summary
+                    : JSON.stringify(prismaReport.Summary)
+                : '{}',
+
             topStakeholders: prismaReport.topStakeholders
-                ? JSON.stringify(prismaReport.topStakeholders)
-                : undefined,
+                ? typeof prismaReport.topStakeholders === 'string'
+                    ? prismaReport.topStakeholders
+                    : JSON.stringify(prismaReport.topStakeholders)
+                : '[]',
+
             topTopics: prismaReport.topTopics
-                ? JSON.stringify(prismaReport.topTopics)
-                : undefined,
+                ? typeof prismaReport.topTopics === 'string'
+                    ? prismaReport.topTopics
+                    : JSON.stringify(prismaReport.topTopics)
+                : '[]',
         };
     }
 
@@ -283,36 +303,40 @@ export class ReportService {
                 status: status,
             };
 
+            console.log({ 'Status for Backend: ': status });
+
             // Status 4+: Calculate stakeholder metrics
-            if (status > 3) {
+            if (status >= 4) {
+                // CHANGED: was > 3
                 updateInput.totalStakeholders =
                     await this._countTotalStakeholders(id);
-            }
-
-            if (status > 4) {
                 updateInput.importantStakeholders =
                     await this._countImportantStakeholders(id);
             }
 
             // Status 5+: Calculate material topics
-            if (status > 5) {
+            if (status >= 5) {
+                // CHANGED: was > 5
+                updateInput.totalTopics = await this._getTotalTopics(id);
                 updateInput.materialTopics =
                     await this._calculateMaterialTopics(id);
             }
 
-            // Status 6+: Calculate total impacts
-            if (status > 6) {
+            // Status 6+: Calculate total impacts and impact radar
+            if (status >= 6) {
+                // CHANGED: was > 6
                 updateInput.totalImpacts = await this._countImpacts(id);
                 updateInput.impactRadar =
-                    (await this._getImpactRadar(id)) || '';
+                    (await this._getImpactRadar(id)) || '{}'; // CHANGED: fallback to '{}'
             }
 
-            // Status 7+: Calculate total risk opportunities (financial effects)
-            if (status > 7) {
+            // Status 7+: Calculate total financial effects and financial radar
+            if (status >= 7) {
+                // CHANGED: was > 7
                 updateInput.totalFinancialEffects =
                     await this._countRiskOpportunities(id);
                 updateInput.financialRadar =
-                    (await this._getFinancialRadar(id)) || '';
+                    (await this._getFinancialRadar(id)) || '{}'; // CHANGED: fallback to '{}'
             }
 
             const report = await this.updateReport(id, updateInput);
@@ -352,31 +376,73 @@ export class ReportService {
 
     /**
      * Counts important stakeholders (avgInfluence > 2.5 AND avgImpact > 2.5)
+     * Calculated from stakeholder ratings in submissions
      */
     private async _countImportantStakeholders(
         reportId: string,
     ): Promise<number> {
         try {
-            const count = await this.prisma.stakeholder.count({
-                where: {
-                    activity: {
-                        context: {
+            // Get average ratings for each stakeholder from submissions
+            const stakeholderAverages =
+                await this.prisma.stakeholderRating.groupBy({
+                    by: ['stakeholderId'],
+                    where: {
+                        submission: {
                             reportId: reportId,
                         },
                     },
-                    AND: [
-                        { avgInfluence: { gt: 2.5 } },
-                        { avgImpact: { gt: 2.5 } },
-                    ],
-                },
-            });
-            return count;
+                    _avg: {
+                        impact: true,
+                        influence: true,
+                    },
+                    having: {
+                        AND: [
+                            {
+                                impact: {
+                                    _avg: { gt: 2.5 },
+                                },
+                            },
+                            {
+                                influence: {
+                                    _avg: { gt: 2.5 },
+                                },
+                            },
+                        ],
+                    },
+                });
+
+            return stakeholderAverages.length;
         } catch (error) {
             console.error('Error counting important stakeholders:', error);
             return 0;
         }
     }
 
+    /**
+     * Calculates material topics based on stakeholder submissions
+     * Topics where BOTH average financial and impact scores > 2.5
+     */
+    private async _getTotalTopics(reportId: string): Promise<number> {
+        try {
+            const report = await this.prisma.report.findUnique({
+                where: {
+                    id: reportId,
+                },
+            });
+            const topics = await this.prisma.topic.count({
+                where: {
+                    dimension: {
+                        standardId: report?.standardId,
+                    },
+                },
+            });
+
+            return topics;
+        } catch (error) {
+            console.error('Error calculating Total topics:', error);
+            return 0;
+        }
+    }
     /**
      * Calculates material topics based on stakeholder submissions
      * Topics where BOTH average financial and impact scores > 2.5
@@ -476,7 +542,6 @@ export class ReportService {
 
     private async _getImpactRadar(reportId: string): Promise<string | null> {
         try {
-            // Single query with proper includes for your schema
             const impacts = await this.prisma.impact.findMany({
                 where: {
                     reportId: reportId,
@@ -494,8 +559,13 @@ export class ReportService {
                 },
             });
 
+            console.log(
+                `Found ${impacts.length} impacts for report ${reportId}`,
+            );
+
             // Early return if no impacts
             if (!impacts.length) {
+                console.log('No impacts found, returning empty object');
                 return JSON.stringify({});
             }
 
@@ -531,6 +601,8 @@ export class ReportService {
                         orderOfImpact: impact.orderOfEffect,
                         type: impact.type,
                     });
+                } else {
+                    console.warn(`Impact ${impact.id} has no dimension name`);
                 }
             });
 
@@ -543,7 +615,6 @@ export class ReportService {
 
     private async _getFinancialRadar(reportId: string): Promise<string | null> {
         try {
-            // Single query with proper includes for your schema
             const effects = await this.prisma.riskOpportunity.findMany({
                 where: {
                     reportId: reportId,
@@ -561,12 +632,19 @@ export class ReportService {
                 },
             });
 
-            // Early return if no impacts
+            console.log(
+                `Found ${effects.length} financial effects for report ${reportId}`,
+            );
+
+            // Early return if no effects
             if (!effects.length) {
+                console.log(
+                    'No financial effects found, returning empty object',
+                );
                 return JSON.stringify({});
             }
 
-            // Group impacts by dimension name
+            // Group effects by dimension name
             const financialRadar: Record<
                 string,
                 Array<{
@@ -591,12 +669,15 @@ export class ReportService {
                         score: Number(score.toFixed(2)),
                         type: effect.type,
                     });
+                } else {
+                    console.warn(
+                        `Financial effect ${effect.id} has no dimension name`,
+                    );
                 }
             });
-
             return JSON.stringify(financialRadar);
         } catch (error) {
-            console.error('Error creating Impact Radar:', error);
+            console.error('Error creating Financial Radar:', error);
             return null;
         }
     }
