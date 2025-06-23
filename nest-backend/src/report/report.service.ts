@@ -21,15 +21,12 @@ export class ReportService {
     private transformPrismaToReport(prismaReport: any): Report {
         return {
             ...prismaReport,
-            ImpactRadar: prismaReport.ImpactRadar
+            impactRadar: prismaReport.ImpactRadar
                 ? JSON.stringify(prismaReport.ImpactRadar)
                 : '',
             financialRadar: prismaReport.financialRadar
                 ? JSON.stringify(prismaReport.financialRadar)
                 : '',
-            Summary: prismaReport.Summary
-                ? JSON.stringify(prismaReport.Summary)
-                : undefined,
             topStakeholders: prismaReport.topStakeholders
                 ? JSON.stringify(prismaReport.topStakeholders)
                 : undefined,
@@ -70,6 +67,11 @@ export class ReportService {
                         select: {
                             id: true,
                             name: true,
+                        },
+                    },
+                    context: {
+                        select: {
+                            id: true,
                         },
                     },
                 },
@@ -160,6 +162,7 @@ export class ReportService {
                             name: true,
                         },
                     },
+                    context: true,
                 },
             });
 
@@ -224,6 +227,7 @@ export class ReportService {
                             name: true,
                         },
                     },
+                    context: true,
                 },
             });
 
