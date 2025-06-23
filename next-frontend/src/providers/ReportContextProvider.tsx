@@ -40,33 +40,6 @@ export function ReportContextProvider({ children }: { children: ReactNode }) {
     }, [company?.reportYears]);
     const hasReports = availableYears.length > 0;
 
-    // Helper function to transform response data to Report interface
-    // const transformResponseToReport = (responseData: any): Report | null => {
-    //     if (!responseData) return null;
-        
-    //     // Handle both direct data and ResponseDto format
-    //     const reportData = responseData.data ? JSON.parse(responseData.data) : responseData;
-        
-    //     return {
-    //         ...reportData,
-    //         // Ensure JSON fields are strings (convert if they come as objects)
-    //         impactRadar: typeof reportData.impactRadar === 'string' 
-    //             ? reportData.impactRadar 
-    //             : reportData.impactRadar ? JSON.stringify(reportData.impactRadar) : undefined,
-    //         financialRadar: typeof reportData.financialRadar === 'string' 
-    //             ? reportData.financialRadar 
-    //             : reportData.financialRadar ? JSON.stringify(reportData.financialRadar) : undefined,
-    //         summary: typeof reportData.summary === 'string' 
-    //             ? reportData.summary 
-    //             : reportData.summary ? JSON.stringify(reportData.Summary) : undefined,
-    //         topStakeholders: typeof reportData.topStakeholders === 'string' 
-    //             ? reportData.topStakeholders 
-    //             : reportData.topStakeholders ? JSON.stringify(reportData.topStakeholders) : undefined,
-    //         topTopics: typeof reportData.topTopics === 'string' 
-    //             ? reportData.topTopics 
-    //             : reportData.topTopics ? JSON.stringify(reportData.topTopics) : undefined,
-    //     };
-    // };
 
     const fetchReportByYear = useCallback(async (year: number) => {
         if (!company?.id) return;
@@ -117,6 +90,7 @@ export function ReportContextProvider({ children }: { children: ReactNode }) {
         if (!company?.id) return null;
 
         try {
+            setReportLoading(true)
             const response = await client.mutate({
                 mutation: CREATE_REPORT,
                 variables: {
@@ -124,14 +98,7 @@ export function ReportContextProvider({ children }: { children: ReactNode }) {
                         year,
                         companyId: company.id,
                         standardId: "f5c94a17-0c1a-499d-8f83-ef7e4d43e8c7", 
-                        // Default values for new fields (they have defaults in the schema)
-                        totalStakeholders: 0,
-                        importantStakeholders: 0,
-                        totalTopics: 0,
-                        materialTopics: 0,
-                        totalImpacts: 0,
-                        totalFinancialEffects: 0,
-                        Status: 1,
+                        status: 1,
                     }
                 }
             });
@@ -146,12 +113,16 @@ export function ReportContextProvider({ children }: { children: ReactNode }) {
             return data
         } catch (error) {
             console.error('Failed to create report:', error);
-            return null;
+            setReportError("Failed to Create Error")
+            return null
+        } finally {
+            setReportLoading(false)
         }
     }, [addReportYear, client, company?.id])
 
     const updateReport = useCallback(async (input: updateReportInput): Promise <Report | null> => {
         try {
+            console.log("In Update Report ...")
             setReportLoading(true)
             const response = await client.mutate({
                 mutation: UPDATE_REPORT,
@@ -179,6 +150,7 @@ export function ReportContextProvider({ children }: { children: ReactNode }) {
     const updateReportStatus = useCallback(async (status: number): Promise <Report | null> => {
         try {
             setReportLoading(true)
+            console.log("In Update Report Status ...")
             const response = await client.mutate({
                 mutation: UPDATE_REPORT_STATUS,
                 variables: {
@@ -188,6 +160,7 @@ export function ReportContextProvider({ children }: { children: ReactNode }) {
             })
 
             const {data, success, message} = response.data.updateReportStatus
+            console.log({'Data in Provider': data})
             if(success && data){
                 setCurrentReport(data)
                 setReportMessage(message)

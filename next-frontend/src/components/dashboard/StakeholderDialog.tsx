@@ -15,14 +15,13 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ActivityLabel, Stakeholder } from '@/types';
-import { useActivity } from '@/hooks';
-import { useReportContext } from '@/providers';
 
 export interface StakeholderFormProps {
     stakeholder: Stakeholder | null;
     open: boolean;
     onClose: () => void;
     onSave: (stakeholderData: Stakeholder) => void;
+    activityLabels: ActivityLabel[]
 }
 
 // 1. Define Zod schema
@@ -39,10 +38,8 @@ export function StakeholderDialog({
     open,
     onClose,
     onSave,
+    activityLabels
 }: StakeholderFormProps) {
-    const { getActivitiesByContext, activities } = useActivity();
-    const { currentReport } = useReportContext();
-    const [activityLabels, setActivityLabels] = React.useState<ActivityLabel[]>([]);
 
     // 2. Set up react-hook-form with zod
     const {
@@ -78,31 +75,12 @@ export function StakeholderDialog({
         }
     }, [stakeholder, open, reset]);
 
-    // 4. Fetch activity labels
-    useEffect(() => {
-        if (currentReport?.context?.id) {
-            getActivitiesByContext(currentReport.context.id);
-        }
-    }, [currentReport?.context?.id, getActivitiesByContext]);
+    
 
-    useEffect(() => {
-        if (activities) {
-            const activityLabelsList = activities.map(activity => ({
-                id: activity.id,
-                name: activity.name,
-                type: activity.type,
-            }));
-            setActivityLabels(activityLabelsList);
-        }
-    }, [activities]);
-
-
-    // 5. Submit handler
     const onSubmit = (data: StakeholderFormValues) => {
         const submitdata = {
             id: '',
             description: data?.description || '',
-            activity: undefined,
             ...data
         }
         onSave(submitdata);

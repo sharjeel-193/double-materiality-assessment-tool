@@ -1,7 +1,7 @@
 // app/dashboard/page.tsx
 "use client";
 
-import { Suspense, lazy, useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useCompanyContext } from '@/providers/CompanyContextProvider';
 import { useReportContext } from '@/providers';
 import {
@@ -21,27 +21,14 @@ import {
     Assessment as ImpactIcon,
     AttachMoney as FinanceIcon
 } from '@mui/icons-material';
-import { Loader, ReportStatusTimeline, StatisticCard } from '@/components';
+import { CreateFirstReport, CreateReportDialog, Loader, ReportSelector, ReportStatusTimeline, StatisticCard } from '@/components';
 import { ImpactRadarChart } from '@/components/dashboard/ImpactRadarChart';
 import { FinancialRadarChart } from '@/components/dashboard/FinancialRadarChart';
 
 
-// Lazy load components
-const CreateFirstReport = lazy(() => 
-    import('@/components').then(module => ({ default: module.CreateFirstReport }))
-);
-
-const ReportSelector = lazy(() => 
-    import('@/components').then(module => ({ default: module.ReportSelector }))
-);
-
-const CreateReportDialog = lazy(() => 
-    import('@/components').then(module => ({ default: module.CreateReportDialog }))
-);
-
 export default function DashboardPage() {
     const { company } = useCompanyContext();
-    const { availableYears, reportLoading, currentReport, hasReports, updateReport } = useReportContext();
+    const { availableYears, reportLoading, currentReport, updateReportStatus } = useReportContext();
     
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
@@ -49,27 +36,21 @@ export default function DashboardPage() {
     if (reportLoading) return <Loader variant="inline" message="Loading dashboard..." />;
     if (!company) return <div>No company data available.</div>;
 
-    // Parse report data if it exists
-    const reportData = currentReport ? (
-        typeof currentReport === 'string' ? JSON.parse(currentReport) : currentReport
-    ) : null;
 
     return (
         <Container maxWidth="xl">
             <Box sx={{ py: 3 }}>
-                {!hasReports ? (
-                    // No reports - Show create first report
-                    <Suspense fallback={<Loader variant="page" message="Loading..." />}>
-                        <Box sx={{ py: { xs: 4, md: 8 }, textAlign: 'center' }}>
-                            <Typography variant="h4" gutterBottom>
-                                Welcome to {company.name}
-                            </Typography>
-                            <CreateFirstReport />
-                        </Box>
-                    </Suspense>
-                ) : (
-                    // Has reports - Show dashboard
-                    <Suspense fallback={<Loader variant="inline" message="Loading dashboard..." />}>
+                {company.reportYears.length < 1?
+                (
+                    <Box sx={{ py: { xs: 4, md: 8 }, textAlign: 'center' }}>
+                        <Typography variant="h4" gutterBottom>
+                            Welcome to {company.name}
+                        </Typography>
+                        <CreateFirstReport />
+                    </Box>
+                ):
+                (
+                     <Suspense fallback={<Loader variant="inline" message="Loading dashboard..." />}>
                         {/* Header Section */}
                         <Box sx={{ mb: 4 }}>
                             <Typography variant="h4" sx={{ fontWeight: 600, mb: 1 }}>
@@ -102,7 +83,7 @@ export default function DashboardPage() {
                                     </Typography>
                                     <Stack direction="row" alignItems="center" spacing={2}>
                                         <Chip 
-                                            label={`Year: ${reportData?.year || 'N/A'}`}
+                                            label={`Year: ${currentReport?.year || 'N/A'}`}
                                             color="primary" 
                                             variant="outlined"
                                         />
@@ -112,7 +93,7 @@ export default function DashboardPage() {
                                             variant="outlined"
                                         />
                                         <Chip 
-                                            label={`Status: ${reportData?.status || 1}/8`}
+                                            label={`Status: ${currentReport?.status || 1}/8`}
                                             color="info" 
                                             variant="outlined"
                                         />
@@ -137,8 +118,8 @@ export default function DashboardPage() {
                             <Grid size={{xs: 12, sm: 6, md: 3}}>
                                 <StatisticCard
                                     title="Material Topics"
-                                    value={reportData?.materialTopics || 0}
-                                    helperText={`out of ${reportData?.totalTopics || 0} total topics`}
+                                    value={currentReport?.materialTopics || 0}
+                                    helperText={`out of ${currentReport?.totalTopics || 0} total topics`}
                                     color="secondary"
                                     icon={<TopicIcon />}
                                 />
@@ -147,7 +128,7 @@ export default function DashboardPage() {
                             <Grid size={{xs: 12, sm: 6, md: 3}}>
                                 <StatisticCard
                                     title="Total Impacts"
-                                    value={reportData?.totalImpacts || 0}
+                                    value={currentReport?.totalImpacts || 0}
                                     helperText="assessed impacts"
                                     color="success"
                                     icon={<ImpactIcon />}
@@ -157,22 +138,24 @@ export default function DashboardPage() {
                             <Grid size={{xs: 12, sm: 6, md: 3}}>
                                 <StatisticCard
                                     title="Financial Effects"
-                                    value={reportData?.totalFinancialEffects || 0}
+                                    value={currentReport?.totalFinancialEffects || 0}
                                     helperText="identified financial effects"
                                     color="warning"
                                     icon={<FinanceIcon />}
                                 />
                             </Grid>
 
-                            <Grid size={{xs: 12, sm: 6, md: 4}}>
-                                <ReportStatusTimeline status={currentReport?.status || 0} updateReportStatus={updateReport}  />
-                            </Grid>
-
-                            <Grid size={{xs: 12, sm: 6, md: 8}}>
+                            <Grid size={{xs: 12, sm: 6}}>
                                 <ImpactRadarChart data={currentReport?.impactRadar || '{}'} />
                             </Grid>
-                            <Grid size={{xs: 12, sm: 6, md: 8}}>
+                            <Grid size={{xs: 12, sm: 6}}>
                                 <FinancialRadarChart data={currentReport?.financialRadar || '{}'} />
+                            </Grid>
+
+                            
+
+                            <Grid size={{xs: 12, sm: 6, md: 4}}>
+                                <ReportStatusTimeline status={currentReport?.status || 0} updateReportStatus={updateReportStatus}  />
                             </Grid>
                         </Grid>
 
@@ -196,18 +179,14 @@ export default function DashboardPage() {
                             <AddIcon />
                         </Fab>
                     </Suspense>
-                )}
+                )
+                }
 
-                {/* Create Report Dialog - Only load when needed */}
-                {createDialogOpen && (
-                    <Suspense fallback={null}>
-                        <CreateReportDialog
-                            open={createDialogOpen}
-                            onClose={() => setCreateDialogOpen(false)}
-                            availableYears={availableYears}
-                        />
-                    </Suspense>
-                )}
+                <CreateReportDialog
+                    open={createDialogOpen}
+                    onClose={() => setCreateDialogOpen(false)}
+                    availableYears={availableYears}
+                />
             </Box>
         </Container>
     );

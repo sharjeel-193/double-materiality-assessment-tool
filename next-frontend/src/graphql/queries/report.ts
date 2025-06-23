@@ -14,6 +14,9 @@ export const REPORT_FIELDS = `
         id
         name
     }
+    context {
+        id
+    }
     totalStakeholders
     importantStakeholders
     totalTopics
@@ -67,8 +70,8 @@ export const UPDATE_REPORT = gql`
 `;
 
 export const UPDATE_REPORT_STATUS = gql`
-    mutation UpdateReportStatus($id: String!, $status: Int!) {
-        updateReport(id: $id, status: $status) {
+    mutation UpdateReportStatus($id: String!, $status: Float!) {
+        updateReportStatus(id: $id, status: $status) {
             success
             message
             data {

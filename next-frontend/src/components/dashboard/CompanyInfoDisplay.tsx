@@ -3,7 +3,7 @@
 import React from 'react';
 import { Grid, Typography, Box } from '@mui/material';
 import { Context } from '@/types';
-
+import moment from 'moment'
 
 interface CompanyInfoDisplayProps {
     data: Context;
@@ -13,7 +13,7 @@ interface CompanyInfoDisplayProps {
 export function CompanyInfoDisplay({ data, companyName }: CompanyInfoDisplayProps) {
     const displayFields = [
         { label: 'Company Name', value: companyName, highlight: true },
-        { label: 'Date', value: data.createdAt },
+        { label: 'Date', value: moment(data.createdAt).format('LL') },
         { label: 'Business Location', value: data.location },
         { label: 'Business Type', value: data.type },
         { label: 'Legal Form', value: data.form },

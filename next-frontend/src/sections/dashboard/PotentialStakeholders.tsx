@@ -11,6 +11,9 @@ import { MdAdd as AddIcon, MdDownload as DownloadIcon } from 'react-icons/md';
 import { CreateStakeholderInput, Stakeholder, UpdateStakeholderInput } from '@/types';
 import { StakeholderList, StakeholderDialog, Loader } from '@/components';
 import { createCSV } from '@/lib/csvHandlers'; // Make sure this is imported
+import { useReportContext } from '@/providers';
+import { ActivityLabel } from '@/types'
+import { useActivity } from '@/hooks';
 
 interface PotentialStakeholdersProps {
     stakeholdersList: Stakeholder[],
@@ -24,6 +27,10 @@ export function PotentialStakeholders({stakeholdersList, createStakeholder, upda
     const [stakeholders, setStakeholders] = useState<Stakeholder[]>([]);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [currentStakeholder, setCurrentStakeholder] = useState<Stakeholder | null>(null);
+    const { currentReport } = useReportContext()
+
+    const { getActivitiesByContext, activities } = useActivity();
+    const [activityLabels, setActivityLabels] = useState<ActivityLabel[]>([]);
 
     const handleAdd = () => {
         setCurrentStakeholder(null);
@@ -95,6 +102,26 @@ export function PotentialStakeholders({stakeholdersList, createStakeholder, upda
         setStakeholders(stakeholdersList)
         
     }, [stakeholdersList])
+
+    useEffect(() => {
+        if (currentReport?.context?.id) {
+            console.log("Calling Activity LAbels")
+            getActivitiesByContext(currentReport.context.id);
+        }
+    }, [currentReport?.context?.id, getActivitiesByContext]);
+
+    useEffect(() => {
+        if (activities) {
+            const activityLabelsList = activities.map(activity => ({
+                id: activity.id,
+                name: activity.name,
+                type: activity.type,
+            }));
+            console.log("Activity Labels Benig Formed")
+            setActivityLabels(activityLabelsList);
+        }
+    }, [activities]);
+
     return (
         <Box>
             {loading?
@@ -161,6 +188,7 @@ export function PotentialStakeholders({stakeholdersList, createStakeholder, upda
                     open={dialogOpen}
                     onClose={handleDialogClose}
                     onSave={handleSave}
+                    activityLabels={activityLabels}
                 />
             </Paper>}
         </Box>

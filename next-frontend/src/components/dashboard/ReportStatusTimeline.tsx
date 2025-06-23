@@ -17,12 +17,12 @@ import {
     Assessment as ImpactIcon,
     AttachMoney as FinanceIcon
 } from '@mui/icons-material';
-import { updateReportInput, Report } from '@/types';
+import { Report } from '@/types';
 import { ConfirmationDialog } from '../ui/ConfirmationDialog';
 
 interface ReportStatusTimelineProps {
     status: number; // 1-8
-    updateReportStatus: (input: updateReportInput) => Promise<Report | null>;
+    updateReportStatus: (status: number) => Promise<Report | null>;
 }
 
 const statusSteps = [
@@ -76,22 +76,22 @@ export function ReportStatusTimeline({ status, updateReportStatus }: ReportStatu
     };
 
     const handleUpdateStatus = (statusValue: number) => {
-        if(statusValue < status){
-            setCurrentStatus(statusValue)
-            setConfirmOpen(true)
-        } else {
-            return
-        }
+        // if(statusValue < status){
+        //     setCurrentStatus(statusValue)
+        //     setConfirmOpen(true)
+        // } else {
+        //     return
+        // }
+        setCurrentStatus(statusValue)
+        setConfirmOpen(true)
         
     }
 
     // Actual delete function called after confirmation
     const confirmResetStatus= async () => {
         setIsResetting(true)
-        const input: updateReportInput = {
-            status: currentStatus || status
-        }
-        await updateReportStatus(input)
+        console.log('Updateing ....', currentStatus)
+        await updateReportStatus(currentStatus || status)
         setIsResetting(false)
     };
 

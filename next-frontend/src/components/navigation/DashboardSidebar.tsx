@@ -13,12 +13,23 @@ import {
 } from '@mui/material';
 
 import { useRouter, usePathname } from 'next/navigation';
-import { useThemeContext } from '@/providers';
+import { useThemeContext, useReportContext } from '@/providers';
 import Image from 'next/image';
 import { dashboardNavItems as navigationItems } from '@/data';
 
 const DRAWER_WIDTH = 280;
 
+// Assessment phases based on report status
+const ASSESSMENT_PHASES = [
+    { status: 1, label: 'Report Created', description: 'Initial setup' },
+    { status: 2, label: 'Context Finalized', description: 'Scope defined' },
+    { status: 3, label: 'Activities Recognized', description: 'Business activities mapped' },
+    { status: 4, label: 'Stakeholders Identified', description: 'Key stakeholders mapped' },
+    { status: 5, label: 'Stakeholders Scored', description: 'Stakeholder prioritization done' },
+    { status: 6, label: 'Material Topics Identified', description: 'Topic materiality assessed' },
+    { status: 7, label: 'Impacts Identified', description: 'Impact assessment completed' },
+    { status: 8, label: 'Financial Effects Identified', description: 'Financial analysis completed' },
+];
 
 interface DashboardSidebarProps {
     mobileOpen?: boolean;
@@ -26,10 +37,46 @@ interface DashboardSidebarProps {
 }
 
 export function DashboardSidebar({ mobileOpen = false, onMobileClose }: DashboardSidebarProps) {
-
     const router = useRouter();
     const pathname = usePathname();
     const { mode } = useThemeContext();
+    const { currentReport, reportLoading } = useReportContext();
+
+    // Calculate progress based on current report status
+    const getProgressData = () => {
+        if (!currentReport || reportLoading) {
+            return {
+                percentage: 0,
+                currentPhase: 'Loading...',
+                phaseDescription: 'Fetching report data',
+                completedPhases: 0,
+                totalPhases: ASSESSMENT_PHASES.length
+            };
+        }
+
+        const status = currentReport.status || 1;
+        const percentage = Math.min((status / ASSESSMENT_PHASES.length) * 100, 100);
+        const currentPhaseData = ASSESSMENT_PHASES.find(phase => phase.status === status) || ASSESSMENT_PHASES[0];
+        
+        return {
+            percentage: Math.round(percentage),
+            currentPhase: currentPhaseData.label,
+            phaseDescription: currentPhaseData.description,
+            completedPhases: Math.max(status - 1, 0), // Completed phases are status - 1
+            totalPhases: ASSESSMENT_PHASES.length
+        };
+    };
+
+    const progressData = getProgressData();
+
+    // Get progress bar color based on completion
+    const getProgressColor = () => {
+        if (progressData.percentage === 100) return 'success.main';
+        if (progressData.percentage >= 75) return 'info.main';
+        if (progressData.percentage >= 50) return 'warning.main';
+        if (progressData.percentage >= 25) return 'primary.main';
+        return 'primary.main';
+    };
 
     const handleNavigation = (path: string) => {
         router.push(path);
@@ -75,7 +122,7 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
                     height={30}
                     style={{ 
                         objectFit: 'contain',
-                        objectPosition: 'left center', // Align logo to left
+                        objectPosition: 'left center',
                         display: 'block',
                     }}
                     priority
@@ -84,7 +131,6 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
 
             {/* Main Navigation */}
             <Box sx={{ flexGrow: 1, py: 2 }}>
-
                 <List sx={{ px: 2 }}>
                     {navigationItems.map((item) => (
                         <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
@@ -118,10 +164,8 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
                                             <Typography variant="body2" sx={{ fontWeight: 500 }}>
                                                 {item.label}
                                             </Typography>
-                                            
                                         </Box>
                                     }
-                                    
                                 />
                             </ListItemButton>
                         </ListItem>
@@ -129,7 +173,7 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
                 </List>
             </Box>
 
-            {/* Progress Indicator */}
+            {/* Dynamic Progress Indicator */}
             <Box
                 sx={{
                     mx: 2,
@@ -144,28 +188,66 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
                 <Typography variant="caption" sx={{ fontWeight: 600, mb: 1, display: 'block' }}>
                     Assessment Progress
                 </Typography>
+                
+                {/* Progress Bar */}
                 <Box
                     sx={{
                         width: '100%',
-                        height: 6,
+                        height: 8,
                         bgcolor: 'background.paper',
-                        borderRadius: 3,
+                        borderRadius: 4,
                         overflow: 'hidden',
                         mb: 1,
+                        border: '1px solid',
+                        borderColor: 'divider',
                     }}
                 >
                     <Box
                         sx={{
-                            width: '35%',
+                            width: `${progressData.percentage}%`,
                             height: '100%',
-                            bgcolor: 'primary.main',
-                            borderRadius: 3,
+                            bgcolor: getProgressColor(),
+                            borderRadius: 4,
+                            transition: 'width 0.3s ease-in-out',
                         }}
                     />
                 </Box>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    2 of 5 phases completed
-                </Typography>
+
+                {/* Progress Info */}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        {progressData.completedPhases} of {progressData.totalPhases} phases completed
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: getProgressColor(), fontWeight: 600 }}>
+                        {progressData.percentage}%
+                    </Typography>
+                </Box>
+
+                {/* Current Phase */}
+                {!reportLoading && currentReport && (
+                    <Box>
+                        <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', color: 'text.primary' }}>
+                            Current: {progressData.currentPhase}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+                            {progressData.phaseDescription}
+                        </Typography>
+                    </Box>
+                )}
+
+                {/* Loading state */}
+                {reportLoading && (
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        Loading assessment data...
+                    </Typography>
+                )}
+
+                {/* No report state */}
+                {!reportLoading && !currentReport && (
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        No active report found
+                    </Typography>
+                )}
             </Box>
         </Box>
     );
@@ -194,13 +276,13 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
                 </Box>
             </Box>
 
-            {/* Mobile Drawer - Fixed */}
+            {/* Mobile Drawer */}
             <Drawer
                 variant="temporary"
                 open={mobileOpen}
                 onClose={onMobileClose}
                 ModalProps={{
-                    keepMounted: true, // Better open performance on mobile
+                    keepMounted: true,
                 }}
                 sx={{
                     display: { xs: 'block', lg: 'none' },

@@ -38,3 +38,5 @@ export { ImpactMatrixDialog } from './dashboard/ImpactMatrixDialog'
 
 export { StatisticCard } from './dashboard/StatisticCard'
 export { ReportStatusTimeline } from './dashboard/ReportStatusTimeline'
+
+export { NoReportPrompt } from './ui/NoReportPrompt'

@@ -7,6 +7,7 @@ import { CompanyInfoForm } from '@/components';
 import { CompanyInfoDisplay } from '@/components/dashboard/CompanyInfoDisplay';
 import { Context, CreateContextInput, UpdateContextInput } from '@/types';
 import { useContextValidation } from '@/hooks';
+import { useCompanyContext } from '@/providers';
 
 interface CompanyCharacteristicsProps {
     contextData: Context | null;
@@ -27,6 +28,8 @@ export function CompanyCharacteristics({
     const [error, setError] = useState<string | null>(null);
 
     const { validateContext } = useContextValidation();
+
+    const { company } = useCompanyContext()
 
     useEffect(() => {
         setFormData(contextData);
@@ -185,10 +188,10 @@ export function CompanyCharacteristics({
                     border: '2px dashed',
                     borderColor: 'primary.main'
                 }}>
-                    <Typography variant="h6" color="primary.main" gutterBottom>
+                    <Typography variant="h6" color="secondary.main" gutterBottom>
                         Get Started with Your Company Context
                     </Typography>
-                    <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                    <Typography variant="body1" color="text.primary" sx={{ mb: 3 }}>
                         Define your companys characteristics to begin your sustainability reporting journey.
                     </Typography>
                     <Button 
@@ -209,7 +212,7 @@ export function CompanyCharacteristics({
                 />
             ) : (
                 // Display Mode
-                <CompanyInfoDisplay data={contextData!} companyName='COMPANY' />
+                <CompanyInfoDisplay data={contextData!} companyName={company?.name || ''} />
             )}
         </Paper>
     );

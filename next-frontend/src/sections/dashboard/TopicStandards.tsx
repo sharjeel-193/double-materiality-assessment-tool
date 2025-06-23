@@ -21,13 +21,16 @@ import {
 } from "@mui/material";
 import { createCSV } from "@/lib/csvHandlers";
 import { Topic } from '@/types';
+import { Loader } from "@/components";
 
 export interface TopicStandardsProps {
     topics: Topic[]; // Each topic has {id, name, description, dimension: {id, name}}
     standards: { id: string; name: string }[]; // List of standards
+    loading: boolean,
+    error: string | null
 }
 
-export function TopicStandards({ topics, standards }: TopicStandardsProps) {
+export function TopicStandards({ topics, standards, loading, error }: TopicStandardsProps) {
     // Assuming each topic.dimension.name is the dimension name,
     // and each topic.dimension.standardId or similar is the standard id.
     // If not, adjust accordingly.
@@ -92,6 +95,21 @@ export function TopicStandards({ topics, standards }: TopicStandardsProps) {
 
         createCSV(csvContent, 'topics-rating-survey.csv');
     };
+
+    if(loading){
+        return (
+            <Box>
+                <Loader variant='page' message='Loading Topics ...' />
+            </Box>
+        )
+    }
+    if(error){
+        return (
+            <Box>
+                <Typography color='error'>Sorry, we ran into some error, plaease try again ...</Typography>
+            </Box>
+        )
+    }
 
     return (
         <Paper sx={{ p: 4, borderRadius: 3 }}>

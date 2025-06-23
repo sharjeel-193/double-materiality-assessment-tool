@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Box, Tabs, Tab, Typography } from '@mui/material';
 import { FinancialEffectList, ImpactList } from '@/sections';
 import { useReportContext } from '@/providers';
+import { Loader, NoReportPrompt } from '@/components';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -37,12 +38,24 @@ function a11yProps(index: number) {
 }
 
 export default function DMAPage() {
-    const [value, setValue] = useState(0);
-    const { currentReport } = useReportContext();
+    const [value, setValue] = useState(1);
+    const { reportLoading, currentReport } = useReportContext();
 
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
     };
+
+    if(reportLoading){
+        return(
+            <Loader variant='page' message='Loading DMA Data ...' />
+        )
+    }
+
+    if(!currentReport){
+        return (
+            <NoReportPrompt />
+        )
+    }
 
     return (
         <Box>
@@ -52,7 +65,7 @@ export default function DMAPage() {
             component="h2"
             sx={{ mb: 3 }} 
         >
-            DMA
+            Double Materiality Assessment
         </Typography>
 
         <Box sx={{ width: '100%' }}>

@@ -1,10 +1,10 @@
 "use client"
-import React, { Suspense, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Box, Typography } from '@mui/material';
 import { CompanyCharacteristics, SupplyChain } from '@/sections';
 import { useActivity, useContextContext } from '@/hooks';
 import { useReportContext } from '@/providers';
-import { Loader } from '@/components';
+import { Loader, NoReportPrompt } from '@/components';
 
 export default function CompanyContextPage() {
     const { 
@@ -14,7 +14,7 @@ export default function CompanyContextPage() {
         updateContext, 
     } = useContextContext();
     
-    const { currentReport } = useReportContext();
+    const { reportLoading, currentReport } = useReportContext();
     const {
         activities,
         getActivitiesByContext,
@@ -37,9 +37,21 @@ export default function CompanyContextPage() {
             getActivitiesByContext(context?.id)
             console.log('Now', activities)
         }
-    }, [context, getActivitiesByContext])
+    }, [activities, context, getActivitiesByContext])
 
     const isNewContext = !context?.id;
+
+    if(reportLoading){
+        return(
+            <Loader variant='page' message='Loading Company Data ...' />
+        )
+    }
+
+    if(!currentReport){
+        return (
+            <NoReportPrompt />
+        )
+    }
 
 
     return (
@@ -72,15 +84,13 @@ export default function CompanyContextPage() {
 
             {
                 context &&
-                <Suspense fallback={<Loader variant='inline' />}>
-                    <SupplyChain
-                        activities={activities}
-                        createActivity={createActivity}
-                        updateActivity={updateActivity}
-                        deleteActivity={deleteActivity}
-                        currentContextId={context?.id}
-                    />
-                </Suspense>
+                <SupplyChain
+                    activities={activities}
+                    createActivity={createActivity}
+                    updateActivity={updateActivity}
+                    deleteActivity={deleteActivity}
+                    currentContextId={context?.id}
+                />
             }
 
             {/* Supply Chain Section */}

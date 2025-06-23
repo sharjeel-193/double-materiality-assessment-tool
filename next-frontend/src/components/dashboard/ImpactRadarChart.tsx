@@ -35,6 +35,7 @@ const groupingOptions = [
 
 export function ImpactRadarChart({ 
     data,
+    title = 'Impact Radar Analysis',
     height = 500 
 }: ImpactRadarChartProps) {
     const theme = useTheme();
@@ -153,7 +154,14 @@ export function ImpactRadarChart({
                 alignItems: 'center',
                 mb: 3
             }}>
-                <Typography variant='h5'>Impact Assessment across Dimensions</Typography>
+                <Box>
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                        {title}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        Distribution of Impacts across sustainability dimensions
+                    </Typography>
+                </Box>
                 
                 <FormControl size="small" sx={{ minWidth: 160 }}>
                     <InputLabel>Group By</InputLabel>

@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import {
   Paper,
@@ -9,6 +7,8 @@ import {
   Divider,
   alpha,
   useTheme,
+  Stack,
+  Tooltip,
 } from '@mui/material';
 import { MdEdit as EditIcon, MdDelete as DeleteIcon } from 'react-icons/md';
 import { Activity } from '@/types';
@@ -22,13 +22,13 @@ interface ActivityListProps {
 
 export function ActivityList({ activities, type, onEdit, onDelete }: ActivityListProps) {
     const isUpstream = type === 'Upstream';
-    const theme = useTheme()
-    
+    const theme = useTheme();
+
     return (
         <Paper 
             variant="outlined" 
             sx={{ 
-                p: 3, 
+                p: 2, 
                 minHeight: 200,
                 borderRadius: 3,
                 bgcolor: isUpstream ? 'primary.light' : 'secondary.light',
@@ -78,93 +78,72 @@ export function ActivityList({ activities, type, onEdit, onDelete }: ActivityLis
                     </Typography>
                 </Box>
             ) : (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Stack spacing={2}>
                     {activities.map((activity, index) => (
                         <Box key={activity.id}>
                             <Box
                                 sx={{
                                     p: 2,
                                     borderRadius: 2,
-                                    bgcolor: alpha(theme.palette.background.default, 0.2),
-                                    border: 'text.secondary',
+                                    bgcolor: alpha(theme.palette.background.default, 0.3),
+                                    border: `1px solid ${theme.palette.divider}`,
+                                    display: 'flex',
+                                    alignItems: 'flex-start',
+                                    justifyContent: 'space-between',
                                 }}
                             >
-                                <Box
-                                    sx={{
-                                        display: 'flex',
-                                        alignItems: 'flex-start',
-                                        justifyContent: 'space-between',
-                                        mb: 1,
-                                    }}
-                                >
-                                    <Box sx={{ flex: 1, mr: 2 }}>
-                                        <Typography 
-                                            variant="subtitle2" 
-                                            sx={{ 
-                                                fontWeight: 700,
-                                                fontSize: '1rem',
-                                                lineHeight: 1.3,
-                                                mb: 0.5,
-                                            }}
-                                        >
-                                            {activity.name}
-                                        </Typography>
-                                        <Typography 
-                                            variant="caption" 
-                                            sx={{ 
-                                                opacity: 0.9,
-                                                lineHeight: 1.4,
-                                                display: 'block',
-                                            }}
-                                        >
-                                            {activity.description}
-                                        </Typography>
-                                    </Box>
-
-                                    <Box
-                                        sx={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 0.5,
-                                            flexShrink: 0,
+                                <Box sx={{ flex: 1, mr: 2 }}>
+                                    <Typography 
+                                        variant="subtitle2" 
+                                        sx={{ 
+                                            fontWeight: 700,
+                                            fontSize: '1rem',
+                                            lineHeight: 1.3,
+                                            mb: 0.5,
                                         }}
                                     >
+                                        {activity.name}
+                                    </Typography>
+                                    <Typography 
+                                        variant="caption" 
+                                        sx={{ 
+                                            opacity: 0.9,
+                                            lineHeight: 1.4,
+                                            display: 'block',
+                                        }}
+                                    >
+                                        {activity.description}
+                                    </Typography>
+                                </Box>
+
+                                <Stack direction="row" spacing={1}>
+                                    <Tooltip title="Edit">
                                         <IconButton 
                                             size="small" 
                                             onClick={() => onEdit(activity)}
-                                            sx={{ 
-                                                color: 'inherit',
-                                                bgcolor: 'rgba(255, 255, 255, 0.1)',
-                                            }}
+                                            sx={{ color: 'inherit' }}
                                         >
                                             <EditIcon size={16} />
                                         </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Delete">
                                         <IconButton 
                                             size="small" 
                                             onClick={() => onDelete(activity.id)}
-                                            sx={{ 
-                                                color: 'inherit',
-                                                bgcolor: 'rgba(255, 255, 255, 0.1)',
-                                            }}
+                                            sx={{ color: 'inherit' }}
                                         >
                                             <DeleteIcon size={16} />
                                         </IconButton>
-                                    </Box>
-                                </Box>
+                                    </Tooltip>
+                                </Stack>
                             </Box>
-
                             {/* Divider between activities (except last one) */}
                             {index < activities.length - 1 && (
-                                <Divider 
-                                    sx={{ 
-                                        my: 1,
-                                        borderColor: 'rgba(255, 255, 255, 0.2)',
-                                    }} 
-                                />
+                                <Divider sx={{ my: 1, borderColor: theme.palette.divider }} />
                             )}
                         </Box>
                     ))}
-                </Box>
+                </Stack>
             )}
         </Paper>
     );

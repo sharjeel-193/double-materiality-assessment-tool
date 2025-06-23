@@ -6,7 +6,7 @@ import { TopicRatings, TopicStandards, MaterialityMatrix } from '@/sections';
 import { useQuery } from '@apollo/client';
 import { GET_TOPICS_BY_STANDARD } from '@/graphql/queries';
 import { useReportContext } from '@/providers';
-import { Loader } from '@/components';
+import { Loader, NoReportPrompt } from '@/components';
 import { useStakeholderSubmission } from '@/hooks/useStakeholderSubmission';
 import { CreateStakeholderSubmissionInput } from '@/types';
 
@@ -43,7 +43,7 @@ function a11yProps(index: number) {
 
 export default function SustainabilityTopicsPage () {
     const [value, setValue] = useState(0);
-    const { currentReport } = useReportContext()
+    const { reportLoading, currentReport } = useReportContext()
     const {loading, error, data } = useQuery(GET_TOPICS_BY_STANDARD, {
         variables: {
             standardId: currentReport?.standardId
@@ -86,18 +86,18 @@ export default function SustainabilityTopicsPage () {
         }
     }, [currentReport?.id, fetchStakeholderSubmissionsByReportAndType, fetchStakeholdersByReport])
 
-    if(loading){
-        return (
-            <Box>
-                <Loader variant='page' message='Loading Topics ...' />
-            </Box>
+    
+
+    if(reportLoading){
+        return(
+            <Loader variant='page' message='Loading Topics Data ...' />
         )
     }
-    if(error){
+
+    
+    if(!currentReport){
         return (
-            <Box>
-                <Typography color='error'>Sorry, we ran into some error, plaease try again ...</Typography>
-            </Box>
+            <NoReportPrompt />
         )
     }
     return (
@@ -133,10 +133,14 @@ export default function SustainabilityTopicsPage () {
                 </Box>
 
                 <TabPanel value={value} index={0}>
-                    <TopicStandards topics={data.topicsByStandard} standards={[{
-                        id: 'f5c94a17-0c1a-499d-8f83-ef7e4d43e8c7',
-                        name: "SusAF"
-                    }]} />
+                    <TopicStandards topics={data?.topicsByStandard || []} 
+                        standards={[{
+                            id: 'f5c94a17-0c1a-499d-8f83-ef7e4d43e8c7',
+                            name: "SusAF"
+                        }]} 
+                        loading={loading}
+                        error={error?.message || null}
+                    />
                 </TabPanel>
 
                 <TabPanel value={value} index={1}>

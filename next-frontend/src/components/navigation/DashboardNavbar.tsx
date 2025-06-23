@@ -60,6 +60,14 @@ export function DashboardNavbar({ onMobileMenuToggle }: DashboardNavbarProps) {
         handleClose();
     };
 
+    function getInitials(fullName: string): string {
+        return fullName
+            .split(' ')
+            .filter(Boolean) // remove empty strings from extra spaces
+            .map(name => name[0].toUpperCase())
+            .join('');
+    }
+
     return (
         <AppBar
             position="sticky"
@@ -125,6 +133,7 @@ export function DashboardNavbar({ onMobileMenuToggle }: DashboardNavbarProps) {
                     <ThemeSwitcher />
                     
                     {/* User Menu */}
+                    {user &&
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
                         <Typography
                             variant="body2"
@@ -133,7 +142,7 @@ export function DashboardNavbar({ onMobileMenuToggle }: DashboardNavbarProps) {
                                 fontWeight: 500,
                             }}
                         >
-                            UN
+                            {user.name}
                         </Typography>
                         <IconButton
                             size="large"
@@ -151,10 +160,10 @@ export function DashboardNavbar({ onMobileMenuToggle }: DashboardNavbarProps) {
                                     fontSize: '1rem',
                                 }}
                             >
-                                UN
+                                {getInitials(user?.name)}
                             </Avatar>
                         </IconButton>
-                    </Box>
+                    </Box>}
 
                     <Menu
                         id="menu-appbar"

@@ -6,6 +6,7 @@ import { PotentialStakeholders, StakeholderRatings, HRIAMap } from '@/sections';
 import { useStakeholder, useUserSubmission } from '@/hooks';
 import { useReportContext } from '@/providers';
 import { CreateUserSubmissionInput } from '@/types'
+import { Loader, NoReportPrompt } from '@/components';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -40,7 +41,7 @@ function a11yProps(index: number) {
 
 export default function StakeholdersPage() {
     const [value, setValue] = useState(0);
-    const { currentReport } = useReportContext();
+    const { reportLoading, currentReport } = useReportContext();
     const {
         stakeholders,
         stakeholderLoading,
@@ -86,6 +87,18 @@ export default function StakeholdersPage() {
             fetchUserSubmissionsByReport(currentReport.id)
         }
     }, [currentReport?.companyId, currentReport?.id, fetchUserSubmissionsByReport, fetchUsersByCompany])
+
+    if(reportLoading){
+        return(
+            <Loader variant='page' message='Loading Stakeholder Data ...' />
+        )
+    }
+
+    if(!currentReport){
+        return (
+            <NoReportPrompt />
+        )
+    }
 
     return (
         <Box>
